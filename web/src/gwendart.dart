@@ -45,6 +45,13 @@ part 'modal.dart';
 part 'gwentexturedskinbase.dart';
 part 'bordered.dart';
 part 'single.dart';
+part 'tabtitlebar.dart';
+part 'dockedtabcontrol.dart';
+part 'docbase.dart';
+part 'tabcontrol.dart';
+part 'tabbutton.dart';
+part 'tabstrip.dart';
+
 
 
 
