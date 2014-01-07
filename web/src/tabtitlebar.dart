@@ -27,7 +27,7 @@ class TabTitleBar extends Label
   
   void UpdateFromTab(TabButton button)
   {
-    Text = button.Text;
+    super.Text = button.Text;
     SizeToContents();
   }
   

@@ -47,10 +47,13 @@ part 'bordered.dart';
 part 'single.dart';
 part 'tabtitlebar.dart';
 part 'dockedtabcontrol.dart';
-part 'docbase.dart';
+part 'dockbase.dart';
 part 'tabcontrol.dart';
 part 'tabbutton.dart';
 part 'tabstrip.dart';
+part 'scrollbarbutton.dart';
+part 'highlight.dart';
+part 'tabcontrolinner.dart';
 
 
 

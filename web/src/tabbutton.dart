@@ -53,7 +53,7 @@ class TabButton extends Button
    /// <param name="skin">Skin to use.</param>
    void Render(GwenSkinBase skin)
    {
-     skin.DrawTabButton(this, IsActive, _Control.TabStrip.Dock);
+     skin.DrawTabButton(this, IsActive, _Control._TabStrip.Dock);
    }
 
    /// <summary>
@@ -98,7 +98,7 @@ class TabButton extends Button
        if (me + 1 < count)
        {
          var nextTab = Parent.Children[me + 1];
-         TabControl.OnTabPressed(nextTab, GwenEventArgs.Empty);
+         _Control.OnTabPressed(nextTab, GwenEventArgs.Empty);
          InputHandler.KeyboardFocus = nextTab;
        }
      }
@@ -122,7 +122,7 @@ class TabButton extends Button
        if (me - 1 >= 0)
        {
          var prevTab = Parent.Children[me - 1];
-         TabControl.OnTabPressed(prevTab, GwenEventArgs.Empty);
+         _Control.OnTabPressed(prevTab, GwenEventArgs.Empty);
          InputHandler.KeyboardFocus = prevTab;
        }
      }

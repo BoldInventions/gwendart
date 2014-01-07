@@ -1,5 +1,6 @@
 import 'dart:html';
 import 'src/gwendart.dart';
+import 'testdockbase.dart';
 
 
 
@@ -30,7 +31,9 @@ void main() {
     gcanvas.ShouldDrawBackground = true;
     gcanvas.BackgroundColor = new Color.argb(255, 200, 165, 120);
     
-    Label label = new Label(gcanvas);
+    
+    TestDockBase testDockBase = new TestDockBase(gcanvas, renderer.Width, renderer.Height);
+    Label label = new Label(testDockBase);
     label.SetPosition(200, 50);
     label.SetText("Hello, Label!");
     gcanvas.Invalidate();

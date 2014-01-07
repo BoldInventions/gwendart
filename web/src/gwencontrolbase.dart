@@ -3,7 +3,7 @@ part of gwendart;
 //typedef void GwenEventHandler(GwenControlBase sender,  GwenEventArgs arguments);
 
 
-abstract class GwenControlBase
+class GwenControlBase
 {
         bool m_Disposed;
 
@@ -170,13 +170,25 @@ abstract class GwenControlBase
         /// </summary>
         GwenSkinBase get Skin
         {
-                if (m_Skin != null)
-                    return m_Skin;
+           GwenSkinBase retSkin=null;
+           
+           if (m_Skin != null)
+           {
+                    retSkin = m_Skin;
+           } else
+           {
+                
                 if (m_Parent != null)
-                    return m_Parent.Skin;
+                {
+                    retSkin =  m_Parent.Skin;
+                } else
+                {
 
-                throw new ArgumentError("GwenControlBase.GetSkin: null");
-            }
+                  throw new ArgumentError("GwenControlBase.GetSkin: null");
+                }
+           }
+           return retSkin;
+        }
         
 
         /// <summary>

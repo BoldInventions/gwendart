@@ -25,4 +25,13 @@ class GwenUtil
   {
     return new Rectangle(left, top, width, height);
   }
+  
+  static int Clamp(int x, int min, int max)
+  {
+    if (x < min)
+      return min;
+    if (x > max)
+      return max;
+    return x;
+  }
 }

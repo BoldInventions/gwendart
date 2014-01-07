@@ -249,6 +249,9 @@ class GwenTexturedSkinBase extends GwenSkinBase
   {
     _Texture = new GwenTexture(renderer);
     _Texture.load(textureName);
+    
+    InitializeColors();
+    InitializeTextures();
   }
   
   void InitializeColors()

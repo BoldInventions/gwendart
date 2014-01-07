@@ -111,7 +111,7 @@ class GwenSkinColors
 
 class GwenSkinBase 
 {
-   static GwenFont DefaultFont;
+   GwenFont DefaultFont;
    final GwenRendererBase _renderer;
    GwenRendererBase get Renderer => _renderer;
    
@@ -119,7 +119,7 @@ class GwenSkinBase
    
    GwenSkinBase(GwenRendererBase renderer) : _renderer = renderer
        {
-     
+          DefaultFont = new GwenFont(renderer);
        }
    
    void ReleaseFont(GwenFont font){}
