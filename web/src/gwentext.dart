@@ -72,7 +72,7 @@ class GwenText extends GwenControlBase
      {
        skin.Renderer.DrawColor = TextColorOverride;
      }
-     skin.Renderer.renderText(Font, new Point<int>(0,0), (TextOverride==null) ? TextOverride : _string);
+     skin.Renderer.renderText(Font, new Point<int>(0,0), (TextOverride!=null) ? TextOverride : _string);
    }
    
    void Layout(GwenSkinBase skin) { SizeToContents(); super.Layout(skin); }
