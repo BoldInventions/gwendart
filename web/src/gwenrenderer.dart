@@ -184,7 +184,14 @@ class GwenRenderer extends GwenRendererBase
   
   Color pixelColor(GwenTexture texture, int x, int y, Color defaultColor)
   {
-    return _cvsr.getPixelColor(x, y);
+    if(texture.Name == _cvsr.NameSkinTexture)
+    {
+      return _cvsr.getSkinTexturePixelColor(x, y);
+    } else
+    {
+      return defaultColor;
+    }
+    
   }
   
 }

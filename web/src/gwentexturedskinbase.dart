@@ -4,12 +4,18 @@ class _Active
 {
    Single Normal;
    Single Checked;
+   _Active(Single normal, Single checked)
+   {
+     Normal = normal;
+     Checked = checked;
+   }
 }
 
 class _Disabled
 {
   Single Normal;
   Single Checked;
+  _Disabled(this.Normal, this.Checked);
 }
 
 class _ScrollerButton
@@ -18,6 +24,7 @@ class _ScrollerButton
   List<Bordered> Hover;
   List<Bordered> Down;
   List<Bordered> Disabled;
+  _ScrollerButton(this.Normal, this.Hover, this.Down, this.Disabled);
 }
 
 class _Panel
@@ -26,6 +33,7 @@ class _Panel
   Bordered Bright;
   Bordered Dark;
   Bordered Highlight;
+  _Panel(this.Normal, this.Bright, this.Dark, this.Highlight);
 }
 
 class _Window
@@ -36,18 +44,21 @@ class _Window
   Single Close_Hover;
   Single Close_Down;
   Single Close_Disabled;
+  _Window(this.Normal, this.Inactive, this.Close, this.Close_Hover, this.Close_Down, this.Close_Disabled);
 }
 
 class _CheckBox
 {
   _Active m_Active;
   _Disabled m_Disabled;
+  _CheckBox(this.m_Active, this.m_Disabled);
 }
 
 class _RadioButton
 {
   _Active m_Active;
   _Disabled m_Disabled;
+  _RadioButton(this.m_Active, this.m_Disabled);
 }
 
 class _TextBox
@@ -55,6 +66,7 @@ class _TextBox
   Bordered Normal;
   Bordered Focus;
   Bordered Disabled;
+  _TextBox(this.Normal, this.Focus, this.Disabled);
 }
 
 class _Tree
@@ -62,12 +74,14 @@ class _Tree
   Bordered Background;
   Single Minus;
   Single Plus;
+  _Tree(this.Background, this.Minus, this.Plus);
 }
 
 class _ProgressBar
 {
   Bordered Back;
   Bordered Front;
+  _ProgressBar(this.Back, this.Front);
 }
 
 class _Menu
@@ -78,6 +92,7 @@ class _Menu
    Bordered Background;
    Bordered BackgroundWithMargin;
    Bordered Hover;
+   _Menu(this.RightArrow, this.Check, this.Strip, this.Background, this.BackgroundWithMargin, this.Hover);
 }
 
 class _Scroller
@@ -94,6 +109,9 @@ class _Scroller
   Bordered ButtonH_Disabled;
   
   _ScrollerButton m_ScrollerButton;
+  _Scroller(this.TrackV, this.TrackH, this.ButtonV_Normal, this.ButtonV_Hover, this.ButtonV_Down, this.ButtonV_Disabled,
+                                      this.ButtonH_Normal, this.ButtonH_Hover, this.ButtonH_Down, this.ButtonH_Disabled,
+            this.m_ScrollerButton);
 }
 
 class _H
@@ -102,6 +120,7 @@ class _H
   Single Hover;
   Single Down;
   Single Disabled;
+  _H(this.Normal, this.Hover, this.Down, this.Disabled);
 }
 
 class _V
@@ -110,12 +129,14 @@ class _V
   Single Hover;
   Single Down;
   Single Disabled;
+  _V(this.Normal, this.Hover, this.Down, this.Disabled);
 }
 
 class _Slider
 {
   _H m_H;
   _V m_V;
+  _Slider(this.m_H, this.m_V);
 }
 
 class _Button
@@ -124,6 +145,7 @@ class _Button
   Single Hover;
   Single Down;
   Single Disabled;
+  _Button(this.Normal, this.Hover, this.Down, this.Disabled);
 }
 class _ComboBox
 {
@@ -132,6 +154,7 @@ class _ComboBox
   Bordered Down;
   Bordered Disabled;
   _Button m_Button;
+  _ComboBox(this.Normal, this.Hover, this.Down, this.Disabled, this.m_Button);
 }
 
 class _ListBox
@@ -142,6 +165,7 @@ class _ListBox
   Bordered OddLine;
   Bordered EvenLineSelected;
   Bordered OddLineSelected;
+  _ListBox(this.Background, this.Hovered, this.EvenLine, this.OddLine, this.EvenLineSelected, this.OddLineSelected);
 }
 
 class _Up
@@ -150,13 +174,10 @@ class _Up
   Single Hover;
   Single Down;
   Single Disabled;
+  _Up(this.Normal, this.Hover, this.Down, this.Disabled);
 }
 
-class _UpDown
-{
-  _Up m_Up;
-  _Down m_Down;
-}
+
 
 class _Down
 {
@@ -164,13 +185,23 @@ class _Down
   Single Hover;
   Single Down;
   Single Disabled;
+  _Down(this.Normal, this.Hover, this.Down, this.Disabled);
 }
+
+class _UpDown
+{
+  _Up m_Up;
+  _Down m_Down;
+  _UpDown(this.m_Up, this.m_Down);
+}
+
 class _InputButton
 {
   Bordered Normal;
   Bordered Hovered;
   Bordered Disabled;
   Bordered Pressed;
+  _InputButton(this.Normal, this.Hovered, this.Disabled, this.Pressed);
 }
 class _Input
 {
@@ -179,6 +210,7 @@ class _Input
   _Slider m_Slider;
   _ListBox m_ListBox;
   _UpDown m_UpDown;
+  _Input(this.m_InputButton, this.m_ComboBox, this.m_Slider, this.m_ListBox, this.m_UpDown);
 }
 
 
@@ -186,21 +218,25 @@ class _Bottom
 {
   Bordered Inactive;
   Bordered Active;
+  _Bottom(this.Inactive, this.Active);
 }
 class _Top
 {
   Bordered Inactive;
   Bordered Active;
+  _Top(this.Inactive, this.Active);
 }
 class _Left
 {
   Bordered Inactive;
   Bordered Active;
+  _Left(this.Inactive, this.Active);
 }
 class _Right
 {
   Bordered Inactive;
   Bordered Active;
+  _Right(this.Inactive, this.Active);
 }
 
 class _Tab
@@ -211,6 +247,7 @@ class _Tab
   _Right m_Right;
   Bordered Control;
   Bordered HeaderBar;
+  _Tab(this.m_Bottom, this.m_Top, this.m_Left, this.m_Right, this.Control, this.HeaderBar);
 }
 
 class _CategoryList
@@ -218,6 +255,7 @@ class _CategoryList
   Bordered Outer;
   Bordered Inner;
   Bordered Header;
+  _CategoryList(this.Outer, this.Inner, this.Header);
 }
 
 class SkinTextures
@@ -238,6 +276,11 @@ class SkinTextures
   _Input m_Input;
   _Tab m_Tab;
   _CategoryList m_CategoryList;
+  SkinTextures(this.StatusBar, this.Selection, this.Shadow, this.Tooltip,
+      this.m_Panel, this.m_Window, this.m_CheckBox, this.m_RadioButton, this.m_TextBox,
+      this.m_Tree, this.m_ProgressBar, this.m_Scroller, this.m_Menu, 
+      this.m_Input, this.m_Tab, this.m_CategoryList);
+  
 }
 
 class GwenTexturedSkinBase extends GwenSkinBase
@@ -256,6 +299,7 @@ class GwenTexturedSkinBase extends GwenSkinBase
   
   void InitializeColors()
   {
+    SkinColors = new GwenSkinColors();
     SkinColors.m_Window.TitleActive   = Renderer.pixelColor(_Texture, 4 + 8*0, 508, Color.Red);
     SkinColors.m_Window.TitleInactive = Renderer.pixelColor(_Texture, 4 + 8*1, 508, Color.Yellow);
 
@@ -317,131 +361,313 @@ class GwenTexturedSkinBase extends GwenSkinBase
 
   void InitializeTextures()
   {
-    MySkinTextures.Shadow    = new Bordered(_Texture, 448, 0, 31, 31, GwenMargin.Eight);
-    MySkinTextures.Tooltip   = new Bordered(_Texture, 128, 320, 127, 31, GwenMargin.Eight);
-    MySkinTextures.StatusBar = new Bordered(_Texture, 128, 288, 127, 31, GwenMargin.Eight);
-    MySkinTextures.Selection = new Bordered(_Texture, 384, 32, 31, 31, GwenMargin.Four);
+    Bordered Bor_Shadow    = new Bordered(_Texture, 448, 0, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Tooltip   = new Bordered(_Texture, 128, 320, 127, 31, GwenMargin.Eight);
+    Bordered Bor_StatusBar = new Bordered(_Texture, 128, 288, 127, 31, GwenMargin.Eight);
+    Bordered Bor_Selection = new Bordered(_Texture, 384, 32, 31, 31, GwenMargin.Four);
 
-    MySkinTextures.m_Panel.Normal    = new Bordered(_Texture, 256, 0, 63, 63, new GwenMargin(16, 16, 16, 16));
-    MySkinTextures.m_Panel.Bright    = new Bordered(_Texture, 256 + 64, 0, 63, 63, new GwenMargin(16, 16, 16, 16));
-    MySkinTextures.m_Panel.Dark      = new Bordered(_Texture, 256, 64, 63, 63, new GwenMargin(16, 16, 16, 16));
-    MySkinTextures.m_Panel.Highlight = new Bordered(_Texture, 256 + 64, 64, 63, 63, new GwenMargin(16, 16, 16, 16));
+    Bordered Bor_Panel_Normal    = new Bordered(_Texture, 256, 0, 63, 63, new GwenMargin(16, 16, 16, 16));
+    Bordered Bor_Panel_Bright    = new Bordered(_Texture, 256 + 64, 0, 63, 63, new GwenMargin(16, 16, 16, 16));
+    Bordered Bor_Panel_Dark      = new Bordered(_Texture, 256, 64, 63, 63, new GwenMargin(16, 16, 16, 16));
+    Bordered Bor_Panel_Highlight = new Bordered(_Texture, 256 + 64, 64, 63, 63, new GwenMargin(16, 16, 16, 16));
 
-    MySkinTextures.m_Window.Normal   = new Bordered(_Texture, 0, 0, 127, 127, new GwenMargin(8, 32, 8, 8));
-    MySkinTextures.m_Window.Inactive = new Bordered(_Texture, 128, 0, 127, 127, new GwenMargin(8, 32, 8, 8));
+    Bordered Bor_m_Window_Normal   = new Bordered(_Texture, 0, 0, 127, 127, new GwenMargin(8, 32, 8, 8));
+    Bordered Bor_m_Window_Inactive = new Bordered(_Texture, 128, 0, 127, 127, new GwenMargin(8, 32, 8, 8));
+    Single Sing_Window_Close       = new Single(_Texture, 0, 224, 24, 24);
+    Single Sing_Window_Close_Hover = new Single(_Texture, 32, 224, 24, 24);
+    Single Sing_Window_Close_Down = new Single(_Texture, 64, 224, 24, 24);
+    Single Sing_Window_Close_Disabled = new Single(_Texture, 96, 224, 24, 24);
 
-    MySkinTextures.m_CheckBox.m_Active.Checked  = new Single(_Texture, 448, 32, 15, 15);
-    MySkinTextures.m_CheckBox.m_Active.Normal   = new Single(_Texture, 464, 32, 15, 15);
-    MySkinTextures.m_CheckBox.m_Disabled.Normal = new Single(_Texture, 448, 48, 15, 15);
-    MySkinTextures.m_CheckBox.m_Disabled.Normal = new Single(_Texture, 464, 48, 15, 15);
+    Single Sing_CheckBox_Active_Checked  = new Single(_Texture, 448, 32, 15, 15);
+    Single Sing_CheckBox_Active_Normal   = new Single(_Texture, 464, 32, 15, 15);
+    Single Sing_CheckBox_Disabled_Checked = new Single(_Texture, 448, 48, 15, 15);
+    Single Sing_CheckBox_Disabled_Normal = new Single(_Texture, 464, 48, 15, 15);
+    
 
-    MySkinTextures.m_RadioButton.m_Active.Checked  = new Single(_Texture, 448, 64, 15, 15);
-    MySkinTextures.m_RadioButton.m_Active.Normal   = new Single(_Texture, 464, 64, 15, 15);
-    MySkinTextures.m_RadioButton.m_Disabled.Normal = new Single(_Texture, 448, 80, 15, 15);
-    MySkinTextures.m_RadioButton.m_Disabled.Normal = new Single(_Texture, 464, 80, 15, 15);
 
-    MySkinTextures.m_TextBox.Normal   = new Bordered(_Texture, 0, 150, 127, 21, GwenMargin.Four);
-    MySkinTextures.m_TextBox.Focus    = new Bordered(_Texture, 0, 172, 127, 21, GwenMargin.Four);
-    MySkinTextures.m_TextBox.Disabled = new Bordered(_Texture, 0, 193, 127, 21, GwenMargin.Four);
+    Single Sing_RadioButton_Active_Checked  = new Single(_Texture, 448, 64, 15, 15);
+    Single Sing_RadioButton_Active_Normal   = new Single(_Texture, 464, 64, 15, 15);
+    Single Sing_RadioButton_Disabled_Checked = new Single(_Texture, 448, 80, 15, 15);
+    Single Sing_RadioButton_Disabled_Normal = new Single(_Texture, 464, 80, 15, 15);
+    
 
-    MySkinTextures.m_Menu.Strip                = new Bordered(_Texture, 0, 128, 127, 21, GwenMargin.One);
-    MySkinTextures.m_Menu.BackgroundWithMargin = new Bordered(_Texture, 128, 128, 127, 63, new GwenMargin(24, 8, 8, 8));
-    MySkinTextures.m_Menu.Background           = new Bordered(_Texture, 128, 192, 127, 63, GwenMargin.Eight);
-    MySkinTextures.m_Menu.Hover                = new Bordered(_Texture, 128, 256, 127, 31, GwenMargin.Eight);
-    MySkinTextures.m_Menu.RightArrow           = new Single(_Texture, 464, 112, 15, 15);
-    MySkinTextures.m_Menu.Check                = new Single(_Texture, 448, 112, 15, 15);
 
-    MySkinTextures.m_Tab.Control         = new Bordered(_Texture, 0, 256, 127, 127, GwenMargin.Eight);
-    MySkinTextures.m_Tab.m_Bottom.Active   = new Bordered(_Texture, 0, 416, 63, 31, GwenMargin.Eight);
-    MySkinTextures.m_Tab.m_Bottom.Inactive = new Bordered(_Texture, 0 + 128, 416, 63, 31, GwenMargin.Eight);
-    MySkinTextures.m_Tab.m_Top.Active      = new Bordered(_Texture, 0, 384, 63, 31, GwenMargin.Eight);
-    MySkinTextures.m_Tab.m_Top.Inactive    = new Bordered(_Texture, 0 + 128, 384, 63, 31, GwenMargin.Eight);
-    MySkinTextures.m_Tab.m_Left.Active     = new Bordered(_Texture, 64, 384, 31, 63, GwenMargin.Eight);
-    MySkinTextures.m_Tab.m_Left.Inactive   = new Bordered(_Texture, 64 + 128, 384, 31, 63, GwenMargin.Eight);
-    MySkinTextures.m_Tab.m_Right.Active    = new Bordered(_Texture, 96, 384, 31, 63, GwenMargin.Eight);
-    MySkinTextures.m_Tab.m_Right.Inactive  = new Bordered(_Texture, 96 + 128, 384, 31, 63, GwenMargin.Eight);
-    MySkinTextures.m_Tab.HeaderBar       = new Bordered(_Texture, 128, 352, 127, 31, GwenMargin.Four);
+    Bordered Bor_TextBox_Normal   = new Bordered(_Texture, 0, 150, 127, 21, GwenMargin.Four);
+    Bordered Bor_TextBox_Focus    = new Bordered(_Texture, 0, 172, 127, 21, GwenMargin.Four);
+    Bordered Bor_TextBox_Disabled = new Bordered(_Texture, 0, 193, 127, 21, GwenMargin.Four);
+    
 
-    MySkinTextures.m_Window.Close       = new Single(_Texture, 0, 224, 24, 24);
-    MySkinTextures.m_Window.Close_Hover = new Single(_Texture, 32, 224, 24, 24);
-    MySkinTextures.m_Window.Close_Hover = new Single(_Texture, 64, 224, 24, 24);
-    MySkinTextures.m_Window.Close_Hover = new Single(_Texture, 96, 224, 24, 24);
 
-    MySkinTextures.m_Scroller.TrackV           = new Bordered(_Texture, 384, 208, 15, 127, GwenMargin.Four);
-    MySkinTextures.m_Scroller.ButtonV_Normal   = new Bordered(_Texture, 384 + 16, 208, 15, 127, GwenMargin.Four);
-    MySkinTextures.m_Scroller.ButtonV_Hover    = new Bordered(_Texture, 384 + 32, 208, 15, 127, GwenMargin.Four);
-    MySkinTextures.m_Scroller.ButtonV_Down     = new Bordered(_Texture, 384 + 48, 208, 15, 127, GwenMargin.Four);
-    MySkinTextures.m_Scroller.ButtonV_Disabled = new Bordered(_Texture, 384 + 64, 208, 15, 127, GwenMargin.Four);
-    MySkinTextures.m_Scroller.TrackH           = new Bordered(_Texture, 384, 128, 127, 15, GwenMargin.Four);
-    MySkinTextures.m_Scroller.ButtonH_Normal   = new Bordered(_Texture, 384, 128 + 16, 127, 15, GwenMargin.Four);
-    MySkinTextures.m_Scroller.ButtonH_Hover    = new Bordered(_Texture, 384, 128 + 32, 127, 15, GwenMargin.Four);
-    MySkinTextures.m_Scroller.ButtonH_Down     = new Bordered(_Texture, 384, 128 + 48, 127, 15, GwenMargin.Four);
-    MySkinTextures.m_Scroller.ButtonH_Disabled = new Bordered(_Texture, 384, 128 + 64, 127, 15, GwenMargin.Four);
+    Bordered Bor_Menu_Strip                = new Bordered(_Texture, 0, 128, 127, 21, GwenMargin.One);
+    Bordered Bor_Menu_BackgroundWithMargin = new Bordered(_Texture, 128, 128, 127, 63, new GwenMargin(24, 8, 8, 8));
+    Bordered Bor_Menu_Background           = new Bordered(_Texture, 128, 192, 127, 63, GwenMargin.Eight);
+    Bordered Bor_Menu_Hover                = new Bordered(_Texture, 128, 256, 127, 31, GwenMargin.Eight);
+    Single Sing_Menu_RightArrow           = new Single(_Texture, 464, 112, 15, 15);
+    Single Sing_Menu_Check                = new Single(_Texture, 448, 112, 15, 15);
+    
 
-    MySkinTextures.m_Scroller.m_ScrollerButton.Normal   = new List<Bordered>();
-    MySkinTextures.m_Scroller.m_ScrollerButton.Disabled = new List<Bordered>();
-    MySkinTextures.m_Scroller.m_ScrollerButton.Hover    = new List<Bordered>();
-    MySkinTextures.m_Scroller.m_ScrollerButton.Down     = new List<Bordered>();
+    
 
-    MySkinTextures.m_Tree.Background = new Bordered(_Texture, 256, 128, 127, 127, new GwenMargin(16, 16, 16, 16));
-    MySkinTextures.m_Tree.Plus       = new Single(_Texture, 448, 96, 15, 15);
-    MySkinTextures.m_Tree.Minus      = new Single(_Texture, 464, 96, 15, 15);
+    Bordered Bor_Tab_Control         = new Bordered(_Texture, 0, 256, 127, 127, GwenMargin.Eight);
+    Bordered Bor_Tab_Bottom_Active   = new Bordered(_Texture, 0, 416, 63, 31, GwenMargin.Eight);
+    Bordered Bor_Tab_Bottom_Inactive = new Bordered(_Texture, 0 + 128, 416, 63, 31, GwenMargin.Eight);
+    Bordered Bor_Tab_Top_Active      = new Bordered(_Texture, 0, 384, 63, 31, GwenMargin.Eight);
+    Bordered Bor_Tab_Top_Inactive    = new Bordered(_Texture, 0 + 128, 384, 63, 31, GwenMargin.Eight);
+    Bordered Bor_Tab_Left_Active     = new Bordered(_Texture, 64, 384, 31, 63, GwenMargin.Eight);
+    Bordered Bor_Tab_Left_Inactive   = new Bordered(_Texture, 64 + 128, 384, 31, 63, GwenMargin.Eight);
+    Bordered Bor_Tab_Right_Active    = new Bordered(_Texture, 96, 384, 31, 63, GwenMargin.Eight);
+    Bordered Bor_Tab_Right_Inactive  = new Bordered(_Texture, 96 + 128, 384, 31, 63, GwenMargin.Eight);
+    Bordered Bor_Tab_HeaderBar       = new Bordered(_Texture, 128, 352, 127, 31, GwenMargin.Four);
 
-    MySkinTextures.m_Input.m_InputButton.Normal   = new Bordered(_Texture, 480, 0, 31, 31, GwenMargin.Eight);
-    MySkinTextures.m_Input.m_InputButton.Hovered  = new Bordered(_Texture, 480, 32, 31, 31, GwenMargin.Eight);
-    MySkinTextures.m_Input.m_InputButton.Disabled = new Bordered(_Texture, 480, 64, 31, 31, GwenMargin.Eight);
-    MySkinTextures.m_Input.m_InputButton.Pressed  = new Bordered(_Texture, 480, 96, 31, 31, GwenMargin.Eight);
+
+
+
+    Bordered Bor_Scroller_TrackV           = new Bordered(_Texture, 384, 208, 15, 127, GwenMargin.Four);
+    Bordered Bor_Scroller_ButtonV_Normal   = new Bordered(_Texture, 384 + 16, 208, 15, 127, GwenMargin.Four);
+    Bordered Bor_Scroller_ButtonV_Hover    = new Bordered(_Texture, 384 + 32, 208, 15, 127, GwenMargin.Four);
+    Bordered Bor_Scroller_ButtonV_Down     = new Bordered(_Texture, 384 + 48, 208, 15, 127, GwenMargin.Four);
+    Bordered Bor_Scroller_ButtonV_Disabled = new Bordered(_Texture, 384 + 64, 208, 15, 127, GwenMargin.Four);
+    Bordered Bor_Scroller_TrackH           = new Bordered(_Texture, 384, 128, 127, 15, GwenMargin.Four);
+    Bordered Bor_Scroller_ButtonH_Normal   = new Bordered(_Texture, 384, 128 + 16, 127, 15, GwenMargin.Four);
+    Bordered Bor_Scroller_ButtonH_Hover    = new Bordered(_Texture, 384, 128 + 32, 127, 15, GwenMargin.Four);
+    Bordered Bor_Scroller_ButtonH_Down     = new Bordered(_Texture, 384, 128 + 48, 127, 15, GwenMargin.Four);
+    Bordered Bor_Scroller_ButtonH_Disabled = new Bordered(_Texture, 384, 128 + 64, 127, 15, GwenMargin.Four);
+
+    List<Bordered> List_Scroller_ScrollerButton_Normal   = new List<Bordered>(4);
+    List<Bordered> List_Scroller_ScrollerButton_Disabled = new List<Bordered>(4);
+    List<Bordered> List_Scroller_ScrollerButton_Hover    = new List<Bordered>(4);
+    List<Bordered> List_Scroller_ScrollerButton_Down     = new List<Bordered>(4);
+    
+
+
+
+    Bordered Bore_Background = new Bordered(_Texture, 256, 128, 127, 127, new GwenMargin(16, 16, 16, 16));
+    Single Sing_Tree_Plus       = new Single(_Texture, 448, 96, 15, 15);
+    Single Sing_Tree_Minus      = new Single(_Texture, 464, 96, 15, 15);
+    
+
+    Bordered Bor_Input_InputButton_Normal   = new Bordered(_Texture, 480, 0, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Input_InputButton_Hovered  = new Bordered(_Texture, 480, 32, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Input_InputButton_Disabled = new Bordered(_Texture, 480, 64, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Input_InputButton_Pressed  = new Bordered(_Texture, 480, 96, 31, 31, GwenMargin.Eight);
+    
+
+
 
     for (int i = 0; i < 4; i++)
     {
-      MySkinTextures.m_Scroller.m_ScrollerButton.Normal[i]   = new Bordered(_Texture, 464 + 0, 208 + i * 16, 15, 15, GwenMargin.Two);
-      MySkinTextures.m_Scroller.m_ScrollerButton.Hover[i]    = new Bordered(_Texture, 480, 208 + i * 16, 15, 15, GwenMargin.Two);
-      MySkinTextures.m_Scroller.m_ScrollerButton.Down[i]     = new Bordered(_Texture, 464, 272 + i * 16, 15, 15, GwenMargin.Two);
-      MySkinTextures.m_Scroller.m_ScrollerButton.Disabled[i] = new Bordered(_Texture, 480 + 48, 272 + i * 16, 15, 15, GwenMargin.Two);
+      List_Scroller_ScrollerButton_Normal[i]   = new Bordered(_Texture, 464 + 0, 208 + i * 16, 15, 15, GwenMargin.Two);
+      List_Scroller_ScrollerButton_Hover[i]    = new Bordered(_Texture, 480, 208 + i * 16, 15, 15, GwenMargin.Two);
+      List_Scroller_ScrollerButton_Down[i]     = new Bordered(_Texture, 464, 272 + i * 16, 15, 15, GwenMargin.Two);
+      List_Scroller_ScrollerButton_Disabled[i] = new Bordered(_Texture, 480 + 48, 272 + i * 16, 15, 15, GwenMargin.Two);
     }
 
-    MySkinTextures.m_Input.m_ListBox.Background       = new Bordered(_Texture, 256, 256, 63, 127, GwenMargin.Eight);
-    MySkinTextures.m_Input.m_ListBox.Hovered          = new Bordered(_Texture, 320, 320, 31, 31, GwenMargin.Eight);
-    MySkinTextures.m_Input.m_ListBox.EvenLine         = new Bordered(_Texture, 352, 256, 31, 31, GwenMargin.Eight);
-    MySkinTextures.m_Input.m_ListBox.OddLine          = new Bordered(_Texture, 352, 288, 31, 31, GwenMargin.Eight);
-    MySkinTextures.m_Input.m_ListBox.EvenLineSelected = new Bordered(_Texture, 320, 270, 31, 31, GwenMargin.Eight);
-    MySkinTextures.m_Input.m_ListBox.OddLineSelected  = new Bordered(_Texture, 320, 288, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Input_ListBox_Background       = new Bordered(_Texture, 256, 256, 63, 127, GwenMargin.Eight);
+    Bordered Bor_Input_ListBox_Hovered          = new Bordered(_Texture, 320, 320, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Input_ListBox_EvenLine         = new Bordered(_Texture, 352, 256, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Input_ListBox_OddLine          = new Bordered(_Texture, 352, 288, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Input_ListBox_EvenLineSelected = new Bordered(_Texture, 320, 270, 31, 31, GwenMargin.Eight);
+    Bordered Bor_Input_ListBox_OddLineSelected  = new Bordered(_Texture, 320, 288, 31, 31, GwenMargin.Eight);
+    
 
-    MySkinTextures.m_Input.m_ComboBox.Normal   = new Bordered(_Texture, 384, 336, 127, 31, new GwenMargin(8, 8, 32, 8));
-    MySkinTextures.m_Input.m_ComboBox.Hover    = new Bordered(_Texture, 384, 336 + 32, 127, 31, new GwenMargin(8, 8, 32, 8));
-    MySkinTextures.m_Input.m_ComboBox.Down     = new Bordered(_Texture, 384, 336 + 64, 127, 31, new GwenMargin(8, 8, 32, 8));
-    MySkinTextures.m_Input.m_ComboBox.Disabled = new Bordered(_Texture, 384, 336 + 96, 127, 31, new GwenMargin(8, 8, 32, 8));
 
-    MySkinTextures.m_Input.m_ComboBox.m_Button.Normal   = new Single(_Texture, 496, 272, 15, 15);
-    MySkinTextures.m_Input.m_ComboBox.m_Button.Hover    = new Single(_Texture, 496, 272 + 16, 15, 15);
-    MySkinTextures.m_Input.m_ComboBox.m_Button.Down     = new Single(_Texture, 496, 272 + 32, 15, 15);
-    MySkinTextures.m_Input.m_ComboBox.m_Button.Disabled = new Single(_Texture, 496, 272 + 48, 15, 15);
 
-    MySkinTextures.m_Input.m_UpDown.m_Up.Normal     = new Single(_Texture, 384, 112, 7, 7);
-    MySkinTextures.m_Input.m_UpDown.m_Up.Hover      = new Single(_Texture, 384 + 8, 112, 7, 7);
-    MySkinTextures.m_Input.m_UpDown.m_Up.Down       = new Single(_Texture, 384 + 16, 112, 7, 7);
-    MySkinTextures.m_Input.m_UpDown.m_Up.Disabled   = new Single(_Texture, 384 + 24, 112, 7, 7);
-    MySkinTextures.m_Input.m_UpDown.m_Down.Normal   = new Single(_Texture, 384, 120, 7, 7);
-    MySkinTextures.m_Input.m_UpDown.m_Down.Hover    = new Single(_Texture, 384 + 8, 120, 7, 7);
-    MySkinTextures.m_Input.m_UpDown.m_Down.Down     = new Single(_Texture, 384 + 16, 120, 7, 7);
-    MySkinTextures.m_Input.m_UpDown.m_Down.Disabled = new Single(_Texture, 384 + 24, 120, 7, 7);
+    Bordered Bor_Input_ComboBox_Normal   = new Bordered(_Texture, 384, 336, 127, 31, new GwenMargin(8, 8, 32, 8));
+    Bordered Bor_Input_ComboBox_Hover    = new Bordered(_Texture, 384, 336 + 32, 127, 31, new GwenMargin(8, 8, 32, 8));
+    Bordered Bor_Input_ComboBox_Down     = new Bordered(_Texture, 384, 336 + 64, 127, 31, new GwenMargin(8, 8, 32, 8));
+    Bordered Bor_Input_ComboBox_Disabled = new Bordered(_Texture, 384, 336 + 96, 127, 31, new GwenMargin(8, 8, 32, 8));
+    
 
-    MySkinTextures.m_ProgressBar.Back  = new Bordered(_Texture, 384, 0, 31, 31, GwenMargin.Eight);
-    MySkinTextures.m_ProgressBar.Front = new Bordered(_Texture, 384 + 32, 0, 31, 31, GwenMargin.Eight);
 
-    MySkinTextures.m_Input.m_Slider.m_H.Normal   = new Single(_Texture, 416, 32, 15, 15);
-    MySkinTextures.m_Input.m_Slider.m_H.Hover    = new Single(_Texture, 416, 32 + 16, 15, 15);
-    MySkinTextures.m_Input.m_Slider.m_H.Down     = new Single(_Texture, 416, 32 + 32, 15, 15);
-    MySkinTextures.m_Input.m_Slider.m_H.Disabled = new Single(_Texture, 416, 32 + 48, 15, 15);
+    Single Sing_Input_ComboBox__Button_Normal   = new Single(_Texture, 496, 272, 15, 15);
+    Single Sing_Input_ComboBox__Button_Hover    = new Single(_Texture, 496, 272 + 16, 15, 15);
+    Single Sing_Input_ComboBox__Button_Down     = new Single(_Texture, 496, 272 + 32, 15, 15);
+    Single Sing_Input_ComboBox__Button_Disabled = new Single(_Texture, 496, 272 + 48, 15, 15);
 
-    MySkinTextures.m_Input.m_Slider.m_V.Normal   = new Single(_Texture, 416 + 16, 32, 15, 15);
-    MySkinTextures.m_Input.m_Slider.m_V.Hover    = new Single(_Texture, 416 + 16, 32 + 16, 15, 15);
-    MySkinTextures.m_Input.m_Slider.m_V.Down     = new Single(_Texture, 416 + 16, 32 + 32, 15, 15);
-    MySkinTextures.m_Input.m_Slider.m_V.Disabled = new Single(_Texture, 416 + 16, 32 + 48, 15, 15);
 
-    MySkinTextures.m_CategoryList.Outer  = new Bordered(_Texture, 256, 384, 63, 63, GwenMargin.Eight);
-    MySkinTextures.m_CategoryList.Inner  = new Bordered(_Texture, 256 + 64, 384, 63, 63, new GwenMargin(8, 21, 8, 8));
-    MySkinTextures.m_CategoryList.Header = new Bordered(_Texture, 320, 352, 63, 31, GwenMargin.Eight);
+
+    
+    Single Sing_Input_UpDown_Up_Normal     = new Single(_Texture, 384, 112, 7, 7);
+    Single Sing_Input_UpDown_Up_Hover      = new Single(_Texture, 384 + 8, 112, 7, 7);
+    Single Sing_Input_UpDown_Up_Down       = new Single(_Texture, 384 + 16, 112, 7, 7);
+    Single Sing_Input_UpDown_Up_Disabled   = new Single(_Texture, 384 + 24, 112, 7, 7);
+    Single Sing_Input_UpDown_Down_Normal   = new Single(_Texture, 384, 120, 7, 7);
+    Single Sing_Input_UpDown_Down_Hover    = new Single(_Texture, 384 + 8, 120, 7, 7);
+    Single Sing_Input_UpDown_Down_Down     = new Single(_Texture, 384 + 16, 120, 7, 7);
+    Single Sing_Input_UpDown_Down_Disabled = new Single(_Texture, 384 + 24, 120, 7, 7);
+    
+    Bordered Bor_ProgressBar_Back  = new Bordered(_Texture, 384, 0, 31, 31, GwenMargin.Eight);
+    Bordered Bor_ProgressBar_Front = new Bordered(_Texture, 384 + 32, 0, 31, 31, GwenMargin.Eight);
+    
+
+    Single Sing_Input_Slider_H_Normal   = new Single(_Texture, 416, 32, 15, 15);
+    Single Sing_Input_Slider_H_Hover    = new Single(_Texture, 416, 32 + 16, 15, 15);
+    Single Sing_Input_Slider_H_Down     = new Single(_Texture, 416, 32 + 32, 15, 15);
+    Single Sing_Input_Slider_H_Disabled = new Single(_Texture, 416, 32 + 48, 15, 15);
+
+    Single Sing_Input_Slider_V_Normal   = new Single(_Texture, 416 + 16, 32, 15, 15);
+    Single Sing_Input_Slider_V_Hover    = new Single(_Texture, 416 + 16, 32 + 16, 15, 15);
+    Single Sing_Input_Slider_V_Down     = new Single(_Texture, 416 + 16, 32 + 32, 15, 15);
+    Single Sing_Input_Slider_V_Disabled = new Single(_Texture, 416 + 16, 32 + 48, 15, 15);
+    
+
+
+    Bordered Bor_CategoryList_Outer  = new Bordered(_Texture, 256, 384, 63, 63, GwenMargin.Eight);
+    Bordered Bor_CategoryList_Inner  = new Bordered(_Texture, 256 + 64, 384, 63, 63, new GwenMargin(8, 21, 8, 8));
+    Bordered Bor_CategoryList_Header = new Bordered(_Texture, 320, 352, 63, 31, GwenMargin.Eight);
+    
+
+    
+    /* Bordered StatusBar;
+    Bordered Selection;
+    Bordered Shadow;
+    Bordered Tooltip;
+    _Panel m_Panel;
+    _Window m_Window;
+    _CheckBox m_CheckBox;
+    _RadioButton m_RadioButton;
+    _TextBox m_TextBox;
+    _Tree m_Tree;
+    _ProgressBar m_ProgressBar;
+    _Scroller m_Scroller;
+    _Menu m_Menu;
+    _Input m_Input;
+    _Tab m_Tab;
+    _CategoryList m_CategoryList; */
+    MySkinTextures = new SkinTextures(
+        Bor_StatusBar,
+        Bor_Selection, 
+        Bor_Shadow, 
+        Bor_Tooltip,
+        new _Panel(
+            Bor_Panel_Normal,
+            Bor_Panel_Bright,
+            Bor_Panel_Dark,
+            Bor_Panel_Highlight
+            ), 
+         new _Window(Bor_m_Window_Normal, Bor_m_Window_Inactive, 
+                Sing_Window_Close, Sing_Window_Close_Hover, 
+                Sing_Window_Close_Down, Sing_Window_Close_Disabled),
+         new _CheckBox(
+             new _Active(
+                    Sing_CheckBox_Active_Checked,
+                    Sing_CheckBox_Active_Normal),
+             new _Disabled(       Sing_CheckBox_Disabled_Checked,
+                    Sing_CheckBox_Disabled_Normal)
+                ),
+         new _RadioButton(
+                    new _Active(Sing_RadioButton_Active_Checked, Sing_RadioButton_Active_Normal),
+                    new _Disabled(Sing_CheckBox_Disabled_Checked, Sing_RadioButton_Disabled_Normal)), 
+         new _TextBox(Bor_TextBox_Normal, Bor_TextBox_Focus, Bor_TextBox_Disabled),
+         new _Tree(Bore_Background, Sing_Tree_Plus, Sing_Tree_Minus), 
+         new _ProgressBar(Bor_ProgressBar_Back, Bor_ProgressBar_Front), 
+         new _Scroller(
+             Bor_Scroller_TrackV,
+             Bor_Scroller_TrackH ,
+             Bor_Scroller_ButtonV_Normal,
+             Bor_Scroller_ButtonV_Hover,
+             Bor_Scroller_ButtonV_Down,
+             Bor_Scroller_ButtonV_Disabled,
+
+             Bor_Scroller_ButtonH_Normal,
+             Bor_Scroller_ButtonH_Hover,
+             Bor_Scroller_ButtonH_Down,
+             Bor_Scroller_ButtonH_Disabled,
+             new _ScrollerButton(List_Scroller_ScrollerButton_Normal,
+                 List_Scroller_ScrollerButton_Hover,
+                 List_Scroller_ScrollerButton_Down,
+                 List_Scroller_ScrollerButton_Disabled)
+         ), 
+         new _Menu(
+             Sing_Menu_RightArrow,
+             Sing_Menu_Check,
+             Bor_Menu_Strip,
+             Bor_Menu_Background,
+             Bor_Menu_BackgroundWithMargin,
+             Bor_Menu_Hover
+         ), 
+         new _Input(
+             new _InputButton(
+                 Bor_Input_InputButton_Normal,
+                 Bor_Input_InputButton_Hovered,
+                 Bor_Input_InputButton_Disabled,
+                 Bor_Input_InputButton_Pressed
+             ),
+             new _ComboBox(
+                 Bor_Input_ComboBox_Normal,
+                 Bor_Input_ComboBox_Hover,
+                 Bor_Input_ComboBox_Down,
+                 Bor_Input_ComboBox_Disabled,
+                 new _Button(
+                     Sing_Input_ComboBox__Button_Normal,
+                     Sing_Input_ComboBox__Button_Hover,
+                     Sing_Input_ComboBox__Button_Down,
+                     Sing_Input_ComboBox__Button_Disabled
+                 )
+             ),
+             new _Slider(
+                 new _H(Sing_Input_Slider_H_Normal,
+                     Sing_Input_Slider_H_Hover,
+                     Sing_Input_Slider_H_Down,
+                     Sing_Input_Slider_H_Disabled
+                 ),
+                 new _V(Sing_Input_Slider_V_Normal,
+                     Sing_Input_Slider_V_Hover,
+                     Sing_Input_Slider_V_Down,
+                     Sing_Input_Slider_V_Disabled
+                 )
+             ),
+             new _ListBox
+             (
+                 Bor_Input_ListBox_Background,
+                 Bor_Input_ListBox_Hovered,
+                 Bor_Input_ListBox_EvenLine,
+                 Bor_Input_ListBox_OddLine,
+                 Bor_Input_ListBox_EvenLineSelected,
+                 Bor_Input_ListBox_OddLineSelected
+             ),
+             new _UpDown(
+                 new _Up(
+                     Sing_Input_UpDown_Up_Normal,
+                     Sing_Input_UpDown_Up_Hover,
+                     Sing_Input_UpDown_Up_Down,
+                     Sing_Input_UpDown_Up_Disabled
+                 ),
+                 new _Down(
+                     Sing_Input_UpDown_Down_Normal,
+                     Sing_Input_UpDown_Down_Hover,
+                     Sing_Input_UpDown_Down_Down,
+                     Sing_Input_UpDown_Down_Disabled        
+                 )
+             )
+         ), 
+         new _Tab(
+             new _Bottom(
+                 Bor_Tab_Bottom_Inactive,
+                 Bor_Tab_Bottom_Active 
+             ),
+             new _Top(
+                 Bor_Tab_Top_Inactive,
+                 Bor_Tab_Top_Active 
+             ),
+             new _Left(
+                 Bor_Tab_Left_Inactive,
+                 Bor_Tab_Left_Active 
+             ),
+             new _Right(
+                 Bor_Tab_Right_Inactive,
+                 Bor_Tab_Right_Active 
+             ),
+             Bor_Tab_Control,
+             Bor_Tab_HeaderBar
+         ), 
+         new _CategoryList(
+             Bor_CategoryList_Outer,
+             Bor_CategoryList_Inner,
+             Bor_CategoryList_Header
+         )
+    );
+    
   }
   
   void DrawButton(GwenControlBase control, bool depressed, bool hovered, bool disabled)

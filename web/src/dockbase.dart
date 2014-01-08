@@ -24,9 +24,9 @@ class DockBase extends GwenControlBase
    Resizer _sizer;
    DockedTabControl _dockedTabControl;
    
-   bool _drawHover;
-   bool _dropFar;
-   Rectangle _hoverRect;
+   bool _drawHover=false;
+   bool _dropFar=false;
+   Rectangle _hoverRect=new Rectangle(0, 0, 0, 0);
    
    DockBase get LeftDock => GetChildDock(Pos.Left);
    DockBase get TopDock => GetChildDock(Pos.Top);

@@ -8,7 +8,10 @@ void main() {
 //  querySelector("#sample_text_id")
 //    ..text = "Click me!"
 //    ..onClick.listen(reverseText);
-  CanvasRenderer renderer = new CanvasRenderer(querySelector("#drawHere" ));
+  CanvasRenderer renderer = new CanvasRenderer(
+      querySelector("#drawHere" ), 
+      querySelector("#skinTextureCanvas"),
+      TestDockBase.SkinImageFilename);
   renderer.initialize().then((_) { 
     renderer.start();
     //renderer.CurrentColor = new Color.rgb(128, 128, 255);
@@ -32,12 +35,13 @@ void main() {
     gcanvas.BackgroundColor = new Color.argb(255, 200, 165, 120);
     
     
-    TestDockBase testDockBase = new TestDockBase(gcanvas, renderer.Width, renderer.Height);
+    TestDockBase testDockBase = new TestDockBase(renderer, gcanvas, renderer.Width, renderer.Height);
     Label label = new Label(testDockBase);
     label.SetPosition(200, 50);
     label.SetText("Hello, Label!");
     gcanvas.Invalidate();
     gcanvas.Redraw();
+    //gcanvas.RenderCanvas();
   
   } );
 }

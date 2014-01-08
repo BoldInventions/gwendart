@@ -446,6 +446,7 @@ class GwenControlBase
         /// <param name="parent">Parent control.</param>
         GwenControlBase([GwenControlBase parent = null])
         {
+            m_DrawDebugOutlines = false;
             m_Children = new List<GwenControlBase>();
             m_Accelerators = new HashMap<String, GwenEventHandler>();
 
@@ -460,6 +461,8 @@ class GwenControlBase
 
             MouseInputEnabled = true;
             KeyboardInputEnabled = false;
+            
+            m_Dock = Pos.None;
 
             Invalidate();
             Cursor = CssCursor.Default;
@@ -1489,6 +1492,10 @@ class GwenControlBase
             }
 
             Rectangle bounds = RenderBounds;
+            if(null == bounds)
+            {
+              throw new StateError("GwenControlBase.RecurseLayout() RenderBounds is null");
+            }
             
             int left = bounds.left;
             int width = bounds.width;

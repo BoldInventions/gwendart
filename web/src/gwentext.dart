@@ -52,9 +52,10 @@ class GwenText extends GwenControlBase
    
    GwenText(GwenControlBase parent) : super(parent)
    {
-     _font = GwenSkinBase.DefaultFont;
-     _string = "";
      GwenSkinBase skin = Skin;
+     _font = skin.DefaultFont;
+     _string = "";
+
      TextColor = skin.SkinColors.m_Label.Default;
      MouseInputEnabled = false;
      TextColorOverride = new Color.argb(0, 255, 255, 255);

@@ -4,6 +4,11 @@ class SkinWindow
 {
   Color TitleActive;
   Color TitleInactive;
+  SkinWindow()
+  {
+    TitleActive   =  Color.Red;
+    TitleInactive =  Color.Yellow;
+  }
 }
 
 class SkinButton
@@ -12,14 +17,21 @@ class SkinButton
   Color Hover;
   Color Down;
   Color Disabled;
+  SkinButton()
+  {
+    Normal   =  Color.Yellow;
+    Hover    =  Color.Yellow;
+    Down     = Color.Yellow;
+    Disabled = Color.Yellow;
+  }
 }
 
 class SkinInactive
 {
-  Color Normal;
-  Color Hover;
-  Color Down;
-  Color Disabled;
+  Color Normal=  Color.Yellow;
+  Color Hover=  Color.Yellow;
+  Color Down=  Color.Yellow;
+  Color Disabled=  Color.Yellow;
 }
 
 class SkinActive
@@ -28,12 +40,24 @@ class SkinActive
   Color Hover;
   Color Down;
   Color Disabled;
+  SkinActive()
+  {
+     Normal=  Color.Yellow;
+    Hover=  Color.Yellow;
+     Down=  Color.Yellow;
+     Disabled=  Color.Yellow;
+  }
 }
 
 class SkinTab
 {
    SkinInactive m_Inactive;
    SkinActive m_Active;
+   SkinTab()
+   {
+     m_Inactive = new SkinInactive();
+     m_Active = new SkinActive();
+   }
 }
 
 class SkinLabel
@@ -42,6 +66,13 @@ class SkinLabel
   Color Bright;
   Color Dark;
   Color Highlight;
+  SkinLabel()
+  {
+  Default=Color.Grey;
+  Bright=Color.White;
+  Dark=Color.Black;
+  Highlight=Color.Yellow;
+  }
 }
 
 class SkinTree
@@ -50,6 +81,13 @@ class SkinTree
   Color Normal;
   Color Hover;
   Color Selected;
+  SkinTree()
+  {
+    Lines = Color.Blue;
+    Normal=Color.Grey;
+    Hover=Color.Green;
+    Selected=Color.White;
+  }
 }
 
 class SkinProperties
@@ -65,6 +103,20 @@ class SkinProperties
   Color Label_Hover;
   Color Border;
   Color Title;
+  SkinProperties()
+  {
+    Line_Normal = Color.Blue;
+    Line_Selected=Color.White;
+    Line_Hover=Color.Green;
+    Column_Normal=Color.Grey;
+    Column_Selected=Color.Purple;
+    Column_Hover=Color.Blue;
+    Label_Normal=Color.Grey;
+    Label_Selected=Color.White;
+    Label_Hover=Color.Black;
+    Border=Color.Black;
+    Color Title=Color.Yellow;
+  }
 }
 
 class SkinLine
@@ -75,6 +127,15 @@ class SkinLine
   Color Button;
   Color Button_Hover;
   Color Button_Selected;
+  SkinLine()
+  {
+    Text=Color.White;
+    Text_Hover=Color.White;
+    Text_Selected=Color.Blue;
+    Button=Color.Grey;
+    Button_Hover=Color.Yellow;
+    Button_Selected=Color.Green;
+  }
 }
 
 class SkinLineAlt
@@ -85,6 +146,15 @@ class SkinLineAlt
   Color Button;
   Color Button_Hover;
   Color Button_Selected;
+  SkinLineAlt()
+  {
+    Text=Color.White;
+    Text_Hover=Color.White;
+    Text_Selected=Color.Blue;
+    Button=Color.Grey;
+    Button_Hover=Color.Yellow;
+    Button_Selected=Color.Green;
+  }
 }
 
 class SkinCategory
@@ -93,6 +163,13 @@ class SkinCategory
   Color Header_Closed;
   SkinLine m_Line;
   SkinLineAlt m_LineAlt;
+  SkinCategory()
+  {
+    Header=Color.Yellow;
+    Header_Closed=Color.Grey;
+    m_Line=new SkinLine();
+    m_LineAlt= new SkinLineAlt();
+  }
 }
 
 class GwenSkinColors
@@ -107,6 +184,18 @@ class GwenSkinColors
   SkinTree m_Tree;
   SkinProperties m_Properties;
   SkinCategory m_Category;
+  GwenSkinColors()
+  {
+    m_ModalBackground = Color.Grey;
+    m_TooltipText= Color.White;
+    m_Window=new SkinWindow();
+    m_Button=new SkinButton();
+    m_Tab= new SkinTab();
+    m_Label=new SkinLabel();
+    m_Tree=new SkinTree();
+    m_Properties=new SkinProperties();
+    m_Category=new SkinCategory();
+  }
 }
 
 class GwenSkinBase 

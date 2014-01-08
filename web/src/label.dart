@@ -65,7 +65,14 @@ class Label extends GwenControlBase
    bool get AutoSizeToContents => _autoSizeToContents;
    set AutoSizeToContents (bool value) { _autoSizeToContents=value; Invalidate(); }
    
-   GwenPadding get TextPadding => _textPadding;
+   GwenPadding get TextPadding 
+   {
+     if(null == _textPadding)
+     {
+       _textPadding = new GwenPadding(0, 0, 0, 0);
+     }
+     return _textPadding;
+   }
    set TextPadding (GwenPadding value) { _textPadding = value; Invalidate(); InvalidateParent(); }
    
 
@@ -103,11 +110,11 @@ class Label extends GwenControlBase
    
    void SizeToContents()
    {
-     _text.SetPosition(_textPadding.Left + Padding.Left, _textPadding.Top + Padding.Top);
+     _text.SetPosition(TextPadding.Left + Padding.Left, TextPadding.Top + Padding.Top);
      _text.SizeToContents();
 
-     SetSize(_text.Width + Padding.Left + Padding.Right + _textPadding.Left + _textPadding.Right, 
-         _text.Height + Padding.Top + Padding.Bottom + _textPadding.Top + _textPadding.Bottom);
+     SetSize(_text.Width + Padding.Left + Padding.Right + TextPadding.Left + TextPadding.Right, 
+         _text.Height + Padding.Top + Padding.Bottom + TextPadding.Top + TextPadding.Bottom);
      InvalidateParent();
    }
    

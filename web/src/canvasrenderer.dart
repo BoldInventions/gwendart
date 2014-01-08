@@ -44,6 +44,12 @@ class CanvasRenderer
   int _txheight;
   Color _color;
   
+  CanvasElement _canvasSkinTexture;
+  CanvasRenderingContext2D _txContextSkin;
+  String _nameSkinTexture;
+  Completer _completerSkinTexture;
+  ImageElement _imageElementSkinTexture;
+  
   HashMap<Object, ImageElement> _mapImageElements=new HashMap<Object, ImageElement>();
   List<Future> _listOfThingsToWaitFor = new List<Future>();
   
@@ -59,7 +65,18 @@ class CanvasRenderer
   int get Width => _textureCanvas.width;
   int get Height => _textureCanvas.height;
   
-  CanvasRenderer(CanvasElement canvas) {
+  String get NameSkinTexture => _nameSkinTexture;
+  
+  bool get IsSkinTextureLoaded => _textureLoadCompleter.isCompleted;
+  
+  CanvasRenderer(CanvasElement canvas, CanvasElement canvasSkinTexture, String nameSkinTexture) {
+    
+    _nameSkinTexture = nameSkinTexture;
+    _canvasSkinTexture= canvasSkinTexture;
+    _canvasSkinTexture.width = 512;
+    _canvasSkinTexture.height = 512;
+    _txContextSkin=_canvasSkinTexture.getContext("2d");
+    
     _textureCanvas = querySelector("#textureCanvas");
     _varTextureCanvas = _textureCanvas;
     _txwidth=_textureCanvas.width = canvas.width;
@@ -245,6 +262,25 @@ class CanvasRenderer
     _gl.uniformMatrix4fv(_uMVMatrix, false, tmpList);
   }
   
+  void onSkinTextureLoaded(e)
+  {
+    _txContextSkin.drawImage(_imageElementSkinTexture, 0, 0);
+    _completerSkinTexture.complete();
+  }
+  
+  Future _initSkinTexture()
+  {
+    _completerSkinTexture=new Completer();
+    _imageElementSkinTexture = new Element.tag('img');
+    _imageElementSkinTexture.onLoad.listen(onSkinTextureLoaded).onError( (e)
+        {
+            print("_initSkinTexture error!");
+            _completerSkinTexture.completeError(e);
+        });
+    _imageElementSkinTexture.src = _nameSkinTexture;
+    return _completerSkinTexture.future;
+  }
+  
   Future _initTexture() {
     _neheTexture = _gl.createTexture();
     ImageElement image = new Element.tag('img');
@@ -254,7 +290,10 @@ class CanvasRenderer
       _gl.clearColor(0.0, 0.0, 0.0, 1.0);
       _gl.enable(webgl.RenderingContext.DEPTH_TEST);
       _textureLoadCompleter.complete();
-    }).onError( (e) { _textureLoadCompleter.completeError(e); } );
+    }).onError( (e) {
+      print("_initTexture error!");
+      _textureLoadCompleter.completeError(e);
+      } );
     //image.src = "nehe.gif";
     //image.src = "512_rgbw_corners.png";
     image.src = "code512.png";
@@ -536,12 +575,30 @@ class CanvasRenderer
   
 
 
-  
+  Color getSkinTexturePixelColor(int x, int y)
+  {
+    int r;
+    int g;
+    int b;
+    int a;
+    ImageData data = _txContextSkin.getImageData(x, y, 1, 1);
+    r = data.data[0].toInt();
+    g = data.data[1].toInt();
+    b = data.data[2].toInt();
+    a = data.data[3].toInt();
+    return new Color.argb(a, r, g, b);
+  }
 
   
   Future initialize()
   {
-    return _initTexture();
+    Completer multipleTextureCompleter = new Completer();
+    Future futTexture1= _initTexture();
+    Future futSkinTexture = _initSkinTexture();
+    Future futBoth = Future.wait([futTexture1, futSkinTexture]).then((e) {
+       multipleTextureCompleter.complete();
+    }).catchError((err) { multipleTextureCompleter.completeError(err); } );
+    return multipleTextureCompleter.future;
   }
   
   void render() {
