@@ -13,6 +13,7 @@ class GwenControlCanvas extends GwenControlBase
    set Scale (double value)
    {
      if(_scale==value) return;
+     _scale=value;
      if(Skin != null && Skin.Renderer != null)
      {
        Skin.Renderer.Scale = _scale;

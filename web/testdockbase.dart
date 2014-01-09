@@ -16,6 +16,17 @@ class TestDockBase extends DockBase
    {
       Dock = Pos.Fill;
       SetSize(width, height);
+      Label label = new Label(this);
+      label.SetPosition(200, 50);
+      label.SetText("Hello, Label!");
+      Button button = new Button(this);
+      button.SetSize(24, 24);
+      button.SetText("ok");
+      button.SetPosition(300, 10);
+      WindowControl window = new WindowControl(this, "My Window");
+      window.SetSize(300, 400);
+      window.SetPosition(10, 15);
+     
       _timer = new Timer.periodic(new Duration(seconds: 1), timerCallback);
    }
    

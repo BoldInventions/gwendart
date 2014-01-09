@@ -123,18 +123,18 @@ class Label extends GwenControlBase
      super.Layout(skin);
      Pos align = _align;
      if(_autoSizeToContents) SizeToContents();
-     int x = _textPadding.Left + Padding.Left;
-     int y = _textPadding.Top + Padding.Top;
+     int x = TextPadding.Left + Padding.Left;
+     int y = TextPadding.Top + Padding.Top;
      if (0 != (align.value & Pos.Right.value)) 
-       x = Width - _text.Width - _textPadding.Right - Padding.Right;
+       x = Width - _text.Width - TextPadding.Right - Padding.Right;
      if (0 != (align.value & Pos.CenterH.value))
-       x = ((_textPadding.Left + Padding.Left) + 
-           ((Width - _text.Width - _textPadding.Left - Padding.Left - _textPadding.Right - Padding.Right) * 0.5)).round();
+       x = ((TextPadding.Left + Padding.Left) + 
+           ((Width - _text.Width - TextPadding.Left - Padding.Left - TextPadding.Right - Padding.Right) * 0.5)).round();
 
      if (0 != (align.value & Pos.CenterV.value))
-       y = ((_textPadding.Top + Padding.Top) + ((Height - _text.Height) * 0.5) - _textPadding.Bottom - Padding.Bottom).round();
+       y = ((TextPadding.Top + Padding.Top) + ((Height - _text.Height) * 0.5) - TextPadding.Bottom - Padding.Bottom).round();
      if (0 != (align.value & Pos.Bottom.value)) 
-       y = Height - _text.Height - _textPadding.Bottom - Padding.Bottom;
+       y = Height - _text.Height - TextPadding.Bottom - Padding.Bottom;
 
      _text.SetPosition(x, y);
    }

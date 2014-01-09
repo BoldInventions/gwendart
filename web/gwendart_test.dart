@@ -30,17 +30,17 @@ void main() {
     GwenRenderer grenderer = new GwenRenderer(renderer);
     GwenTexturedSkinBase skin = new GwenTexturedSkinBase(grenderer, "DefaultSkin.png");
     GwenControlCanvas gcanvas = new GwenControlCanvas(skin);
+    gcanvas.MouseInputEnabled = true;
+    gcanvas.KeyboardInputEnabled = true;
     gcanvas.SetSize(renderer.Width, renderer.Height);
     gcanvas.ShouldDrawBackground = true;
     gcanvas.BackgroundColor = new Color.argb(255, 200, 165, 120);
     
     
     TestDockBase testDockBase = new TestDockBase(renderer, gcanvas, renderer.Width, renderer.Height);
-    Label label = new Label(testDockBase);
-    label.SetPosition(200, 50);
-    label.SetText("Hello, Label!");
-    gcanvas.Invalidate();
-    gcanvas.Redraw();
+
+    //gcanvas.Invalidate();
+    //gcanvas.Redraw();
     //gcanvas.RenderCanvas();
   
   } );

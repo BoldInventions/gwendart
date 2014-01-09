@@ -69,11 +69,16 @@ class GwenRenderer extends GwenRendererBase
 {
   double _scale=1.0;
   CanvasRenderer _cvsr;
+  GwenControlCanvas _gwenCanvas;
+  int lastKnownMouseX=0;
+  int lastKnownMouseY=0;
   
   GwenRenderer(CanvasRenderer cvsr)
   {
     _cvsr = cvsr;
   }
+  
+  
   double get Scale => _scale;
   set Scale(double value) { _scale = value; }
   
@@ -119,7 +124,12 @@ class GwenRenderer extends GwenRendererBase
   {
     _cvsr.unclipCanvas();
   }
-  
+  void loadTextureKnownSize(GwenTexture t, int width, int height)
+  {
+    if(t.Name != null) t.HasData = true;
+    t.Width = width;
+    t.Height=height;
+  }
   void loadTexture(GwenTexture t)
   {
      if(t.Name != null) t.HasData = true;
@@ -139,13 +149,15 @@ class GwenRenderer extends GwenRendererBase
   }
   
   
-  void drawTexturedRect(GwenTexture t, Rectangle<int> targetRect, [double u1=0.0, double v1=0.0, double u2=1.0, double v2=1.0])
+  void drawTexturedRect(GwenTexture t, Rectangle<int> r, [double u1=0.0, double v1=0.0, double u2=1.0, double v2=1.0])
   {
+    Rectangle targetRect = translateRect(r);
     _cvsr.drawTexturedRectFromName(t.Name, targetRect, u1, v1, u2, v2);
   }
   
-  void drawMissingImage(Rectangle<int> rect, [String name="(unknown)"])
+  void drawMissingImage(Rectangle<int> r, [String name="(unknown)"])
   {
+    Rectangle rect = translateRect(r);
     _cvsr.drawMissingTexture(rect, name);
   }
   
@@ -164,11 +176,12 @@ class GwenRenderer extends GwenRendererBase
   void renderText(GwenFont font, Point<int> position, String text)
   {
     _cvsr.setFont(font.CssString);
-    _cvsr.drawTextOnCanvas( text, position.x, position.y );
+    _cvsr.drawTextOnCanvas( text, translateX(position.x), translateY(position.y) );
   }
   
-  void drawLinedRect(Rectangle<int> rect)
+  void drawLinedRect(Rectangle<int> r)
   {
+     Rectangle rect = translateRect(r);
      drawFilledRect(new Rectangle<int>(rect.left, rect.top, rect.width, 1));
      drawFilledRect(new Rectangle<int>(rect.left, rect.top+rect.height - 1, rect.width, 1));
      drawFilledRect(new Rectangle<int>(rect.left, rect.top, 1, rect.height));
@@ -192,6 +205,62 @@ class GwenRenderer extends GwenRendererBase
       return defaultColor;
     }
     
+  }
+  
+  void onMouseDownHandler(MouseEvent me)
+  {
+    lastKnownMouseX = me.client.x;
+    lastKnownMouseY = me.client.y;
+    _gwenCanvas.Input_MouseButton((me.button==2) ? 1 : 0, true);
+  }
+  
+  void onMouseUpHandler(MouseEvent me)
+  {
+    lastKnownMouseX = me.client.x;
+    lastKnownMouseY = me.client.y;
+    _gwenCanvas.Input_MouseButton((me.button==2) ? 1 : 0, false);
+  }
+  
+  void onMouseMoveHandler(MouseEvent me)
+  {
+    _gwenCanvas.Input_MouseMoved(me.client.x, me.client.y,  me.client.x-lastKnownMouseX, me.client.y-lastKnownMouseY );
+    lastKnownMouseX = me.client.x;
+    lastKnownMouseY = me.client.y;
+  }
+  
+  void onKeyDownHandler(KeyboardEvent ke)
+  {
+    _gwenCanvas.Input_Key(gkey, true);
+  }
+
+  
+  void connectEventsToGwenCanvas(GwenControlBase canvas)
+  {
+    _cvsr.onMouseDown.listen(onMouseDownHandler);
+    _cvsr.onMouseUp.listen(onMouseUpHandler);
+    _cvsr.onKeyDown.listen(onKeyDownHandler);
+    _cvsr.onKeyUp.listen(onKeyUpHandler);
+  }
+  static const Invalid = const GwenKey._(0);
+  static const Return = const GwenKey._(1);
+  static const Backspace = const GwenKey._(2);
+  static const Delete = const GwenKey._(3);
+  static const Left = const GwenKey._(4);
+  static const Right = const GwenKey._(5);
+  static const Shift = const GwenKey._(6);
+  static const Tab = const GwenKey._(7);
+  static const Space = const GwenKey._(8);
+  static const Home = const GwenKey._(9);
+  static const End = const GwenKey._(10);
+  static const Control = const GwenKey._(11);
+  static const Up = const GwenKey._(12);
+  static const Down = const GwenKey._(13);
+  static const Escape = const GwenKey._(14);
+  static const Alt = const GwenKey._(15);
+  
+  GwenKey getGwenKeyFromEvent(KeyboardEvent ke)
+  {
+    ke.keyCode
   }
   
 }

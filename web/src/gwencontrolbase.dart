@@ -1569,7 +1569,6 @@ class GwenControlBase
 
                 child.RecurseLayout(skin);
             }
-            m_RenderBounds = new Rectangle(left, top, width, height);
 
             m_InnerBounds = m_RenderBounds;
 

@@ -79,6 +79,7 @@ abstract class GwenRendererBase
   void startClip();
   void endClip();
   void loadTexture(GwenTexture t);
+  void loadTextureKnownSize(GwenTexture t, int width, int height);
   void loadTextureRaw(GwenTexture t, var pixelData);
   void loadTextureStream(GwenTexture t, var stream);
   void freeTexture(GwenTexture t);
@@ -177,6 +178,12 @@ abstract class GwenRendererBase
   {
     int y1 = y + _renderOffset.y;
     return (y1*Scale).ceil();
+  }
+  
+  Rectangle translateRect(Rectangle r)
+  {
+    return new Rectangle(translateX(r.left), translateY(r.top), 
+        translateX(r.right)-translateX(r.left), translateY(r.bottom)-translateY(r.top));
   }
   
   void translate(int x, int y)

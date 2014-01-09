@@ -42,15 +42,12 @@ class Button extends Label
    }
    
    
-   Button(GwenControlBase parent) : super(parent)
+   Button(GwenControlBase parent) : IsToggle=false, _depressed = false, _toggleStatus=false, _centerImage=false, super(parent)
    {
      AutoSizeToContents=false;
      SetSize(100, 20);
      MouseInputEnabled=true;
      Alignment = Pos.Center;
-     _depressed = false;
-     IsToggle=false;
-     _toggleStatus=false;
      _centerImage=false;
      _image=null;
    }

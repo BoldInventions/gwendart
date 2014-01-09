@@ -291,7 +291,10 @@ class GwenTexturedSkinBase extends GwenSkinBase
   GwenTexturedSkinBase(GwenRendererBase renderer, String textureName) : super(renderer)
   {
     _Texture = new GwenTexture(renderer);
-    _Texture.load(textureName);
+    _Texture.Name = textureName;
+    renderer.loadTextureKnownSize(_Texture, 512, 512);
+ //   _Texture.load(textureName);
+  
     
     InitializeColors();
     InitializeTextures();

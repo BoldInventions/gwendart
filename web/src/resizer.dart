@@ -122,12 +122,12 @@ class Resizer extends Dragger
     {
         _resizeDir = new Pos(value.value);
 
-        if ((0 != (value.value & Pos.Left.value) && 0 != (value.value & Pos.Top)) || (0 != (value.value & Pos.Right.value) && 0 != (value.value & Pos.Bottom)))
+        if ((0 != (value.value & Pos.Left.value) && 0 != (value.value & Pos.Top.value)) || (0 != (value.value & Pos.Right.value) && 0 != (value.value & Pos.Bottom.value)))
         {
           Cursor = CssCursor.SizeNWSE;
           return;
         }
-        if ((0 != (value.value & Pos.Right.value) && 0 != (value.value & Pos.Top)) || (0 != (value.value & Pos.Left.value) && 0 != (value.value & Pos.Bottom)))
+        if ((0 != (value.value & Pos.Right.value) && 0 != (value.value & Pos.Top.value)) || (0 != (value.value & Pos.Left.value) && 0 != (value.value & Pos.Bottom.value)))
         {
           Cursor = CssCursor.SizeNESW;
           return;
@@ -137,7 +137,7 @@ class Resizer extends Dragger
           Cursor = CssCursor.SizeWE;
           return;
         }
-        if (0 != (value.value & Pos.Top) || 0 != (value.value & Pos.Bottom))
+        if (0 != (value.value & Pos.Top.value) || 0 != (value.value & Pos.Bottom.value))
         {
           Cursor = CssCursor.SizeNS;
           return;

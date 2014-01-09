@@ -69,8 +69,29 @@ class CanvasRenderer
   
   bool get IsSkinTextureLoaded => _textureLoadCompleter.isCompleted;
   
+  ElementStream<MouseEvent> get onClick => _canvas.onClick;
+  ElementStream<KeyboardEvent> get onKeyDown => _canvas.onKeyDown;
+  ElementStream<KeyboardEvent> get onKeyPress => _canvas.onKeyPress;
+  ElementStream<KeyboardEvent> get onKeyUp => _canvas.onKeyUp;
+  ElementStream<MouseEvent> get onMouseDown => _canvas.onMouseDown;
+  ElementStream<MouseEvent> get onMouseEnter => _canvas.onMouseEnter;
+  ElementStream<MouseEvent> get onMouseLeave => _canvas.onMouseLeave;
+  ElementStream<MouseEvent> get onMouseMove => _canvas.onMouseMove;
+  ElementStream<MouseEvent> get onMouseUp => _canvas.onMouseUp;
+  ElementStream<WheelEvent> get onMouseWheel => _canvas.onMouseWheel;
+  ElementStream<Event> get onFullscreenChange => _canvas.onFullscreenChange;
+  ElementStream<Event> get onFullscreenError => _canvas.onFullscreenError;
+  ElementStream<TouchEvent> get onTouchCancel => _canvas.onTouchCancel;
+  ElementStream<TouchEvent> get onTouchEnd => _canvas.onTouchEnd;
+  ElementStream<TouchEvent> get onTouchEnter => _canvas.onTouchEnter;
+  ElementStream<TouchEvent> get onTouchLeave => _canvas.onTouchLeave;
+  ElementStream<TouchEvent> get onTouchMove => _canvas.onTouchMove;
+  ElementStream<TouchEvent> get onTouchStart => _canvas.onTouchStart;
+
+
+  
   CanvasRenderer(CanvasElement canvas, CanvasElement canvasSkinTexture, String nameSkinTexture) {
-    
+    _canvas=canvas;
     _nameSkinTexture = nameSkinTexture;
     _canvasSkinTexture= canvasSkinTexture;
     _canvasSkinTexture.width = 512;
@@ -329,7 +350,16 @@ class CanvasRenderer
     ///_txContext.drawImageScaledFromSource(
     //    elem, elem.width*u1, elem.height*v1, 
      //   (u2-u1)*elem.width, (v2-v1)*elem.height, rect.left, rect.top, rect.width, rect.height);
-    _txContext.drawImageToRect(elem, rect /*, sourceRect: */);
+    if( (u1==0.0)&&(v1==0.0)&&(u2==1.0)&&(v2==1.0) )
+    {
+       _txContext.drawImageToRect(elem, rect /*, sourceRect: */);
+    } else 
+    {
+       Rectangle srcRect = new Rectangle(
+           elem.width * u1, elem.height*v1, elem.width*(u2-u1), elem.height*(v2-v1)
+           );
+       _txContext.drawImageToRect(elem,rect, sourceRect: srcRect);
+    }
   }
   
   void drawTexturedRectFromName(String name, Rectangle<int> rect, [double u1=0.0, double v1=0.0, double u2=1.0, double v2=1.0])
@@ -512,7 +542,7 @@ class CanvasRenderer
     //_txContext.fillRect(0, 0, textWidth, textHeight );
     
     _txContext.textAlign = "left";
-    _txContext.textBaseline = "top";
+    _txContext.textBaseline = "middle";
     _txContext.fillStyle = CurrentColor.StyleString;
     
 

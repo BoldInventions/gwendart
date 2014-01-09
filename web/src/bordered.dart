@@ -63,7 +63,7 @@ class Bordered
     int top = (_margin.Top * drawMarginScale).round();
     int bottom = (_margin.Bottom * drawMarginScale).round();
     
-    _margin = new GwenMargin(left, right, top, bottom);
+    _margin = new GwenMargin(left, top, right, bottom);
 
     _width = w - x;
     _height = h - y;
