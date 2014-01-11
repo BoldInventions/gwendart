@@ -290,7 +290,11 @@ class GwenRenderer extends GwenRendererBase
   }
   
   void drawLine(int x, int y, int a, int b) { _cvsr.drawLineOnCanvas(x, y, a, b); }
-  void drawFilledRect(Rectangle<int> rect) { _cvsr.drawFilledRectOnCanvas(rect); }
+  void drawFilledRect(Rectangle<int> r) 
+  { 
+    Rectangle rect = translateRect(r);
+    _cvsr.drawFilledRectOnCanvas(rect);
+  }
   void startClip()
   {
      _cvsr.clipCanvas(_clipRegion);
@@ -423,6 +427,7 @@ class GwenRenderer extends GwenRendererBase
     if(_frameNumber == 0) return;
     _gwenCanvas.Input_Key(getGwenKeyFromEvent(ke), true);
     if(ke.shiftKey) GwenRenderer.g_bShiftKeyDown=true;
+    if(ke.keyCode == KeyCode.SPACE) new Future(() { _gwenCanvas.Input_Character(" "); }); 
   }
   
   void onKeyUpHandler(KeyboardEvent ke)
@@ -434,7 +439,10 @@ class GwenRenderer extends GwenRendererBase
   
   void onKeyPressHandler(KeyboardEvent ke)
   {
+    
     if(_frameNumber == 0) return;
+    _gwenCanvas.Input_Character(new String.fromCharCodes([ke.charCode]));
+    /*
     int iKey = ke.keyCode;
     if(ke.ctrlKey)
     {
@@ -458,6 +466,7 @@ class GwenRenderer extends GwenRendererBase
       return;
     }
     print("Unhandled key press 0x${ke.charCode.toRadixString(16)}");
+    */
   }
 
   

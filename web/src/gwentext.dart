@@ -82,6 +82,7 @@ class GwenText extends GwenControlBase
      if(0==Length || 0 == index) return new Point<int>(0,0);
      String sub = ((null != TextOverride) ? TextOverride : _string).substring(0, index);
      Point<int> p = new Point<int>(Skin.Renderer.measureText(Font, sub).x, 0);
+     return p;
    }
    
    static int abs(int a) 

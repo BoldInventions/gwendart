@@ -568,7 +568,7 @@ class CanvasRenderer
     //_txContext.fillRect(0, 0, textWidth, textHeight );
     
     _txContext.textAlign = "left";
-    _txContext.textBaseline = "middle";
+    _txContext.textBaseline = "top";
     _txContext.fillStyle = CurrentColor.StyleString;
     
 
@@ -795,6 +795,34 @@ class CanvasRenderer
   void setCursor(String strCssCursor)
   {
     _canvas.style.cursor = strCssCursor;
+  }
+  
+  static List<int> _listKeyCodesToPrevent=new List<int>();
+  
+  void _preventBrowserKeyInterpretationHandler(KeyboardEvent ke)
+  {
+    if(_listKeyCodesToPrevent.contains(ke.keyCode))
+    {
+       ke.preventDefault();
+    }
+  }
+  
+  void preventBrowserKeyInterpretation()
+  {
+    if(!_listKeyCodesToPrevent.contains(KeyCode.BACKSPACE))
+    {
+    _listKeyCodesToPrevent.add(KeyCode.BACKSPACE);
+    _listKeyCodesToPrevent.add(KeyCode.SPACE);
+    _listKeyCodesToPrevent.add(KeyCode.HOME);
+    _listKeyCodesToPrevent.add(KeyCode.END);
+    _listKeyCodesToPrevent.add(KeyCode.PAGE_UP);
+    _listKeyCodesToPrevent.add(KeyCode.PAGE_DOWN);
+    _listKeyCodesToPrevent.add(KeyCode.UP);
+    _listKeyCodesToPrevent.add(KeyCode.DOWN);
+    _listKeyCodesToPrevent.add(KeyCode.LEFT);
+    _listKeyCodesToPrevent.add(KeyCode.RIGHT);    
+    }
+    window.onKeyDown.listen(_preventBrowserKeyInterpretationHandler);
   }
 
 }

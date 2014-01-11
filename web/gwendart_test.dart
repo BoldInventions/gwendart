@@ -12,6 +12,7 @@ void main() {
       querySelector("#drawHere" ), 
       querySelector("#skinTextureCanvas"),
       TestDockBase.SkinImageFilename);
+      renderer.preventBrowserKeyInterpretation();
   renderer.initialize().then((_) {
           GwenRenderer grenderer = new GwenRenderer(renderer);
           GwenTexturedSkinBase skin = new GwenTexturedSkinBase(grenderer, "DefaultSkin.png");

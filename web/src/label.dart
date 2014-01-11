@@ -50,6 +50,7 @@ class Label extends GwenControlBase
    set TextColorOverride(Color value) { _text.TextColorOverride = value; }
    
    int get TextWidth=> _text.Width;
+   int get TextHeight=> _text.Height;
    
    int get TextX => _text.X;
    int get TextY => _text.Y;
@@ -107,6 +108,17 @@ class Label extends GwenControlBase
    }
    
    void OnTextChanged() {}
+   
+   /// <summary>
+   /// Gets the coordinates of specified character.
+   /// </summary>
+   /// <param name="index">Character index.</param>
+   /// <returns>Character coordinates (local).</returns>
+   Point GetCharacterPosition(int index)
+   {
+     Point p = _text.GetCharacterPosition(index);
+     return new Point(p.x + _text.X, p.y + _text.Y);
+   }
    
    void SizeToContents()
    {

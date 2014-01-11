@@ -54,6 +54,7 @@ part 'tabstrip.dart';
 part 'scrollbarbutton.dart';
 part 'highlight.dart';
 part 'tabcontrolinner.dart';
+part 'textbox.dart';
 
 
 

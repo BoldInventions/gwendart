@@ -1,5 +1,4 @@
 
-import 'dart:async';
 import 'src/gwendart.dart';
 
 class TestDockBase extends DockBase
@@ -28,6 +27,11 @@ class TestDockBase extends DockBase
       WindowControl window = new WindowControl(this, "My Window");
       window.SetSize(300, 400);
       window.SetPosition(10, 15);
+      
+      TextBox textBox = new TextBox(this);
+      textBox.Text = "Hello";
+      textBox.AutoSizeToContents = false;
+      textBox.SetPosition(13, 480);
      
      // _timer = new Timer.periodic(new Duration(seconds: 1), timerCallback);
    }
