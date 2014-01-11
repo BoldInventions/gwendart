@@ -55,6 +55,8 @@ part 'scrollbarbutton.dart';
 part 'highlight.dart';
 part 'tabcontrolinner.dart';
 part 'textbox.dart';
+part 'checkbox.dart';
+part 'labeledcheckbox.dart';
 
 
 

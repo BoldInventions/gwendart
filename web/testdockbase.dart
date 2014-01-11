@@ -31,7 +31,11 @@ class TestDockBase extends DockBase
       TextBox textBox = new TextBox(this);
       textBox.Text = "Hello";
       textBox.AutoSizeToContents = false;
-      textBox.SetPosition(13, 480);
+      textBox.SetPosition(13, 490);
+      
+      LabeledCheckBox ckbox = new LabeledCheckBox(this);
+      ckbox.Text = "Awesomeness";
+      ckbox.SetPosition(12, 470);
      
      // _timer = new Timer.periodic(new Duration(seconds: 1), timerCallback);
    }
