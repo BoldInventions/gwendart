@@ -40,9 +40,9 @@ class GwenEventHandlerList extends GwenEventHandler
    
    void Invoke(GwenControlBase controlBase, var arguments)
    {
-     for(GwenEventHandler in _list)
+     for(GwenEventHandler handler in _list)
      {
-       Invoke(controlBase, arguments);
+       handler.Invoke(controlBase, arguments);
      }
    }
    

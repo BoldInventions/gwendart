@@ -307,7 +307,16 @@ class GwenControlBase
         /// <summary>
         /// Gets or sets the mouse cursor when the cursor is hovering the control.
         /// </summary>
-        CssCursor get Cursor  { return m_Cursor; } set Cursor(CssCursor value) { m_Cursor = value; }
+        CssCursor get Cursor  
+        { 
+          return m_Cursor; 
+        } 
+        
+        
+        set Cursor(CssCursor value) 
+        { 
+          m_Cursor = value; 
+        }
 
         /// <summary>
         /// Indicates whether the control is tabable (can be focused by pressing Tab).
@@ -449,6 +458,7 @@ class GwenControlBase
             m_DrawDebugOutlines = false;
             m_Children = new List<GwenControlBase>();
             m_Accelerators = new HashMap<String, GwenEventHandler>();
+            m_RenderBounds = new Rectangle<int>(0, 0, 0, 0);
 
             Parent = parent;
 
@@ -676,7 +686,7 @@ class GwenControlBase
         {
             if (m_ActualParent == null)
                 return;
-            if ( (0 < m_ActualParent.m_Children.length) && m_ActualParent.m_Children[m_Children.length-1] == this)
+            if ( (0 < m_ActualParent.m_Children.length) && m_ActualParent.m_Children[m_ActualParent.m_Children.length-1] == this)
                 return;
 
             m_ActualParent.m_Children.remove(this);
@@ -1452,11 +1462,24 @@ class GwenControlBase
 
             // todo: convert to linq FindLast
             GwenControlBase found=null; 
-            for(GwenControlBase child in m_Children)
+            int count = m_Children.length;
+            int i;
+            GwenControlBase child=null;
+            //for(GwenControlBase child in m_Children)
+            for(i=count-1; i>=0; i--)
             {
+             // if(child is Button)
+             // {
+             //   if(GwenRenderer.g_bShiftKeyDown)
+             //   {
+             //   if(x < -100000) return null; // nonsense line for debugging.
+             //   }
+             // }
+              child=m_Children[i];
               found = child.GetControlAt(x - child.X, y - child.Y);
+              if(null!=found) return found;
             }
-            if(null!=found) return found;
+
 
             if (!MouseInputEnabled)
                 return null;
@@ -1707,7 +1730,8 @@ class GwenControlBase
         /// </summary>
         void UpdateCursor()
         {
-            Neutral.SetCursor(m_Cursor);
+            //Neutral.SetCursor(m_Cursor);
+           Skin.Renderer.SetCursor(m_Cursor);
         }
 
         // giver

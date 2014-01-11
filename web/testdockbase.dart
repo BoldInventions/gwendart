@@ -8,7 +8,7 @@ class TestDockBase extends DockBase
    GwenControlBase _lastControl;
    double Fps;
    String Note;
-   Timer _timer;
+//   Timer _timer;
    final CanvasRenderer _cvsr;
    
    TestDockBase(CanvasRenderer cvsr, 
@@ -23,13 +23,15 @@ class TestDockBase extends DockBase
       button.SetSize(24, 24);
       button.SetText("ok");
       button.SetPosition(300, 10);
+      button.MouseInputEnabled=true;
+      button.KeyboardInputEnabled=true;
       WindowControl window = new WindowControl(this, "My Window");
       window.SetSize(300, 400);
       window.SetPosition(10, 15);
      
-      _timer = new Timer.periodic(new Duration(seconds: 1), timerCallback);
+     // _timer = new Timer.periodic(new Duration(seconds: 1), timerCallback);
    }
-   
+/*   
    void timerCallback(Timer timer)
    {
       if(Parent != null)
@@ -43,4 +45,5 @@ class TestDockBase extends DockBase
         }
       }
    }
+   */
 }

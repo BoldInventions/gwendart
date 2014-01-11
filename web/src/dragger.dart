@@ -55,7 +55,7 @@ class Dragger extends GwenControlBase
    Dragger(GwenControlBase parent) : super(parent)
    {
      MouseInputEnabled = true;
-     _held = true;
+     _held = false;
      _holdPos = new Point<int>(0, 0);
      _base = null;
    }

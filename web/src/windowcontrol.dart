@@ -45,11 +45,26 @@ class WindowControl extends ResizableControl
      _title.Dock = Pos.Fill;
      _title.Padding = new GwenPadding(8, 4, 0, 0);
      _title.TextColor = Skin.SkinColors.m_Window.TitleInactive;
+     _title.AutoSizeToContents=false;
      
      _closeButton = new CloseButton(_titleBar, this);
      _closeButton.SetSize(24, 24);
      _closeButton.Dock = Pos.Right;
      _closeButton.Clicked;
+     
+     //Create a blank content control, dock it to the top - Should this be a ScrollControl?
+     m_InnerPanel = new GwenControlBase(this);
+     m_InnerPanel.Dock = Pos.Fill;
+     GetResizer(8).Hide();
+     BringToFront();
+     IsTabable = false;
+     Focus();
+     MinimumSize = new Point(100, 40);
+     ClampMovement = true;
+     KeyboardInputEnabled = false;
+
+     if (modal)
+       MakeModal();
    }
    
    void DisableResizing()

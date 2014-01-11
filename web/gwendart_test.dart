@@ -12,9 +12,28 @@ void main() {
       querySelector("#drawHere" ), 
       querySelector("#skinTextureCanvas"),
       TestDockBase.SkinImageFilename);
-  renderer.initialize().then((_) { 
+  renderer.initialize().then((_) {
+          GwenRenderer grenderer = new GwenRenderer(renderer);
+          GwenTexturedSkinBase skin = new GwenTexturedSkinBase(grenderer, "DefaultSkin.png");
+          GwenControlCanvas gcanvas = new GwenControlCanvas(skin);
+
+          gcanvas.MouseInputEnabled = true;
+          gcanvas.KeyboardInputEnabled = true;
+          gcanvas.SetSize(renderer.Width, renderer.Height);
+          gcanvas.ShouldDrawBackground = true;
+          gcanvas.BackgroundColor = new Color.argb(255, 200, 165, 120);
+          
+          
+          TestDockBase testDockBase = new TestDockBase(renderer, gcanvas, renderer.Width, renderer.Height);
+          grenderer.connectEventsToGwenCanvas(gcanvas); 
+          grenderer.notifyRedrawRequested();
+          querySelector("#drawHere" ).focus();
+        }
+        , onError: (err, stacktrace) { print("Error in first render: $err, stacktrac: $stacktrace");});
+    
+    /* No need for this test any more */
+    /*
     renderer.start();
-    //renderer.CurrentColor = new Color.rgb(128, 128, 255);
     renderer.drawTexturedRectFromName("nehe.gif", new Rectangle<int>(35, 35, 100, 100));
     renderer.CurrentColor = Color.Blue;
     renderer.drawFilledRectOnCanvas(new Rectangle<int>(300, 300, 100, 100));
@@ -26,24 +45,13 @@ void main() {
     renderer.drawLineOnCanvas(0, 0, 512, 512);
 
     renderer.finish();
-    
-    GwenRenderer grenderer = new GwenRenderer(renderer);
-    GwenTexturedSkinBase skin = new GwenTexturedSkinBase(grenderer, "DefaultSkin.png");
-    GwenControlCanvas gcanvas = new GwenControlCanvas(skin);
-    gcanvas.MouseInputEnabled = true;
-    gcanvas.KeyboardInputEnabled = true;
-    gcanvas.SetSize(renderer.Width, renderer.Height);
-    gcanvas.ShouldDrawBackground = true;
-    gcanvas.BackgroundColor = new Color.argb(255, 200, 165, 120);
-    
-    
-    TestDockBase testDockBase = new TestDockBase(renderer, gcanvas, renderer.Width, renderer.Height);
+    */
 
     //gcanvas.Invalidate();
     //gcanvas.Redraw();
     //gcanvas.RenderCanvas();
   
-  } );
+
 }
 
 void reverseText(MouseEvent event) {

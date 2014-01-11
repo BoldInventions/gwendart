@@ -20,7 +20,15 @@ class InputHandler
    static Point MousePosition = new Point(0, 0);
    
 
-   
+   static void init()
+   {
+     int i;
+     for(i=0; i<GwenKey.Count.value; i++)
+     {
+       m_KeyData.KeyState[i]=false;
+       m_KeyData.NextRepeat[i]=0.0;
+     }
+   }
    
    static bool DoSpecialKeys(GwenControlBase canvas, String chr)
    {
@@ -106,7 +114,7 @@ class InputHandler
      //
      // Simulate Key-Repeats
      //
-     for (int i = 0; i < GwenKey.Count; i++)
+     for (int i = 0; i < GwenKey.Count.value; i++)
      {
        if (m_KeyData.KeyState[i] && m_KeyData.Target != KeyboardFocus)
        {
@@ -251,6 +259,7 @@ class InputHandler
      {
        if (HoveredControl != null)
        {
+         print("Hover: ${HoveredControl.Name}");
          var oldHover = HoveredControl;
          HoveredControl = null;
          oldHover.InputMouseLeft();
@@ -299,7 +308,7 @@ class InputHandler
      return;
    }
    
-   static KeyData m_KeyData;
+   static KeyData m_KeyData=new KeyData();
    static List<double> _lastClickTime = null;
    static List<double> get ListLastClickTimes 
    {

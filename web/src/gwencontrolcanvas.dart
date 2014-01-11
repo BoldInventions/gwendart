@@ -27,8 +27,9 @@ class GwenControlCanvas extends GwenControlBase
    
    GwenControlCanvas(GwenSkinBase skin) : super()
    {
-     SetBounds(0, 0, 10000, 1000);
      SetSkin(skin);
+     SetBounds(0, 0, 10000, 1000);
+
      Scale = 1.0;
      BackgroundColor = Color.White;
      ShouldDrawBackground = false;
@@ -38,6 +39,7 @@ class GwenControlCanvas extends GwenControlBase
    {
      NeedsRedraw = true;
      super.Redraw();
+     Skin.Renderer.notifyRedrawRequested();
    }
    
    // Children call parent.GetCanvas() until they get to the top level function.
@@ -156,8 +158,8 @@ class GwenControlCanvas extends GwenControlBase
    bool Input_Key(GwenKey key, bool down)
    {
      if (IsHidden) return false;
-     if (key.value <= GwenKey.Invalid) return false;
-     if (key.value >= GwenKey.Count) return false;
+     if (key.value <= GwenKey.Invalid.value) return false;
+     if (key.value >= GwenKey.Count.value) return false;
 
      return InputHandler.OnKeyEvent(this, key, down);
    }

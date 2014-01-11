@@ -9,7 +9,7 @@ class KeyData
    bool RightMouseDown;
    
    
-   KeyData() : KeyState = new List<bool>(), NextRepeat= new List<double>()
+   KeyData() : KeyState = new List<bool>(GwenKey.Count.value), NextRepeat= new List<double>(GwenKey.Count.value)
        {
               Target = null;
               LeftMouseDown = false;

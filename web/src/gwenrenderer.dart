@@ -2,6 +2,8 @@ part of gwendart;
 
 class CanvasFont extends GwenFont
 {
+
+  
   String _facename;
   int _size;
   bool _bSmooth;
@@ -67,17 +69,188 @@ class CanvasTexture extends GwenTexture
 
 class GwenRenderer extends GwenRendererBase
 {
+  static HashMap<int, String> KeyXlateDict=new HashMap<int, String>();
+  static HashMap<int, String> KeyXlateDictShift=new HashMap<int, String>();
+  static HashMap<int, String> KeyXlateDictCtrl=new HashMap<int, String>();
+  
   double _scale=1.0;
   CanvasRenderer _cvsr;
-  GwenControlCanvas _gwenCanvas;
+  GwenControlCanvas _gwenCanvas=null;
   int lastKnownMouseX=0;
   int lastKnownMouseY=0;
+  int _frameNumber;
+  
+  Queue<DateTime> RenderRequestQueue = new Queue<DateTime>();
   
   GwenRenderer(CanvasRenderer cvsr)
   {
     _cvsr = cvsr;
+    _frameNumber=0;
+    _initKeyXlateDict();
+    InputHandler.init();
   }
   
+  void _initKeyXlateDict()
+  {
+    HashMap<int, String> d = GwenRenderer.KeyXlateDict;
+    d[KeyCode.A]= "a";
+    d[KeyCode.APOSTROPHE]="`";
+    d[KeyCode.B]="b";
+    d[KeyCode.BACKSLASH]="\\";
+    d[KeyCode.BACKSPACE]="\b";
+    d[KeyCode.C]="c";
+    d[KeyCode.CLOSE_SQUARE_BRACKET]="]";
+    d[KeyCode.COMMA]=",";
+    d[KeyCode.D]="d";
+    d[KeyCode.DASH]="-";
+    d[KeyCode.E]="e";
+    d[KeyCode.ENTER]="\r";
+    d[KeyCode.EIGHT]="8";
+    d[KeyCode.EQUALS]="=";
+    d[KeyCode.ESC]="\x1b";
+    d[KeyCode.F]="f";
+    d[KeyCode.FIVE]="5";
+    d[KeyCode.FOUR]="4";
+    d[KeyCode.G]='g';
+    d[KeyCode.H]='h';
+    d[KeyCode.I]='i';
+    d[KeyCode.J]='j';
+    d[KeyCode.K]='k';
+    d[KeyCode.L]='l';
+    d[KeyCode.M]='m';
+    d[KeyCode.N]='n';
+    d[KeyCode.NINE]='9';
+    d[KeyCode.NUM_FIVE]='5';
+    d[KeyCode.NUM_FOUR]='4';
+    d[KeyCode.NUM_THREE]='3';
+    d[KeyCode.NUM_TWO]='2';
+    d[KeyCode.NUM_ONE]='1';
+    d[KeyCode.NUM_ZERO]='0';
+    d[KeyCode.NUM_SIX]='6';
+    d[KeyCode.NUM_SEVEN]='7';
+    d[KeyCode.NUM_EIGHT]='8';
+    d[KeyCode.NUM_NINE]='9';
+    d[KeyCode.NUM_DIVISION]='/';
+    d[KeyCode.NUM_MULTIPLY]='*';
+    d[KeyCode.NUM_MINUS]='-';
+    d[KeyCode.NUM_PLUS]='+';
+    d[KeyCode.O]='o';
+    d[KeyCode.ONE]='1';
+    d[KeyCode.P]='p';
+    d[KeyCode.PERIOD]='.';
+    d[KeyCode.Q]='q';
+    d[KeyCode.QUESTION_MARK]='?';
+    d[KeyCode.S]='s';
+    d[KeyCode.SEVEN]='7';
+    d[KeyCode.SINGLE_QUOTE]="'";
+    d[KeyCode.SIX]='6';
+    d[KeyCode.SLASH]='/';
+    d[KeyCode.SPACE]=' ';
+    d[KeyCode.T]='t';
+    d[KeyCode.TAB]='\t';
+    d[KeyCode.THREE]='3';
+    d[KeyCode.TILDE]='~';
+    d[KeyCode.TWO]='2';
+    d[KeyCode.U]='u';
+    d[KeyCode.V]='v';
+    d[KeyCode.X]='x';
+    d[KeyCode.Y]='y';
+    d[KeyCode.Z]='z';
+    d[KeyCode.ZERO]='0';
+    
+    d = GwenRenderer.KeyXlateDictShift;
+    d[KeyCode.A]= "A";
+    d[KeyCode.APOSTROPHE]="~";
+    d[KeyCode.B]="B";
+    d[KeyCode.BACKSLASH]="|";
+    d[KeyCode.BACKSPACE]="\b";
+    d[KeyCode.C]="C";
+    d[KeyCode.CLOSE_SQUARE_BRACKET]="}";
+    d[KeyCode.COMMA]='<';
+    d[KeyCode.D]="D";
+    d[KeyCode.DASH]='_';
+    d[KeyCode.E]="E";
+    d[KeyCode.ENTER]="\r";
+    d[KeyCode.EIGHT]="*";
+    d[KeyCode.EQUALS]="+";
+    d[KeyCode.ESC]="\x1b";
+    d[KeyCode.F]="F";
+    d[KeyCode.FIVE]="%";
+    d[KeyCode.FOUR]="\$";
+    d[KeyCode.G]='G';
+    d[KeyCode.H]='H';
+    d[KeyCode.I]='I';
+    d[KeyCode.J]='J';
+    d[KeyCode.K]='K';
+    d[KeyCode.L]='L';
+    d[KeyCode.M]='M';
+    d[KeyCode.N]='N';
+    d[KeyCode.NINE]='(';
+    d[KeyCode.NUM_FIVE]='5';
+    d[KeyCode.NUM_FOUR]='4';
+    d[KeyCode.NUM_THREE]='3';
+    d[KeyCode.NUM_TWO]='2';
+    d[KeyCode.NUM_ONE]='1';
+    d[KeyCode.NUM_ZERO]='0';
+    d[KeyCode.NUM_SIX]='6';
+    d[KeyCode.NUM_SEVEN]='7';
+    d[KeyCode.NUM_EIGHT]='8';
+    d[KeyCode.NUM_NINE]='9';
+    d[KeyCode.NUM_DIVISION]='/';
+    d[KeyCode.NUM_MULTIPLY]='*';
+    d[KeyCode.NUM_MINUS]='-';
+    d[KeyCode.NUM_PLUS]='+';
+    d[KeyCode.O]='O';
+    d[KeyCode.ONE]='!';
+    d[KeyCode.P]='P';
+    d[KeyCode.PERIOD]='>';
+    d[KeyCode.Q]='Q';
+    d[KeyCode.QUESTION_MARK]='?';
+    d[KeyCode.S]='S';
+    d[KeyCode.SEVEN]='&';
+    d[KeyCode.SINGLE_QUOTE]='"';
+    d[KeyCode.SIX]='^';
+    d[KeyCode.SLASH]='?';
+    d[KeyCode.SPACE]=' ';
+    d[KeyCode.T]='T';
+    d[KeyCode.TAB]='\t';
+    d[KeyCode.THREE]='#';
+    d[KeyCode.TILDE]='~';
+    d[KeyCode.TWO]='@';
+    d[KeyCode.U]='U';
+    d[KeyCode.V]='V';
+    d[KeyCode.X]='X';
+    d[KeyCode.Y]='Y';
+    d[KeyCode.Z]='Z';
+    d[KeyCode.ZERO]=')';
+    
+    d=GwenRenderer.KeyXlateDictCtrl;
+    d[KeyCode.A]= "\x01";
+    d[KeyCode.B]="\x02";
+    d[KeyCode.C]="\x03";
+    d[KeyCode.D]="\x04";
+    d[KeyCode.E]="\x05";
+    d[KeyCode.F]="\x06";
+    d[KeyCode.G]='\x07';
+    d[KeyCode.H]='\x08';
+    d[KeyCode.I]='\x09';
+    d[KeyCode.J]='\x0a';
+    d[KeyCode.K]='\x0b';
+    d[KeyCode.L]='\x0c';
+    d[KeyCode.M]='\x0d';
+    d[KeyCode.N]='\x0e';
+    d[KeyCode.O]='\x0f';
+    d[KeyCode.P]='\x10';
+    d[KeyCode.Q]='\x11';
+    d[KeyCode.S]='\x12';
+    d[KeyCode.T]='\x13';
+    d[KeyCode.U]='\x14';
+    d[KeyCode.V]='\x15';
+    d[KeyCode.X]='\x16';
+    d[KeyCode.Y]='\x17';
+    d[KeyCode.Z]='\x18';
+
+  }
   
   double get Scale => _scale;
   set Scale(double value) { _scale = value; }
@@ -86,6 +259,8 @@ class GwenRenderer extends GwenRendererBase
   
   void begin() 
   {
+    RenderRequest request = _cvsr.requestRenderFrame();
+    request.completer.future.then(doFrameComplete, onError: doFrameCompleteError);
     _cvsr.start();
   }
   void end()
@@ -209,58 +384,184 @@ class GwenRenderer extends GwenRendererBase
   
   void onMouseDownHandler(MouseEvent me)
   {
-    lastKnownMouseX = me.client.x;
-    lastKnownMouseY = me.client.y;
+    if(_frameNumber == 0) return;
+    int mx = me.client.x-_cvsr.ClientX;
+    int my = me.client.y-_cvsr.ClientY;
+    lastKnownMouseX = mx;
+    lastKnownMouseY = my;
     _gwenCanvas.Input_MouseButton((me.button==2) ? 1 : 0, true);
   }
   
   void onMouseUpHandler(MouseEvent me)
   {
-    lastKnownMouseX = me.client.x;
-    lastKnownMouseY = me.client.y;
+    if(_frameNumber == 0) return;
+    int mx = me.client.x-_cvsr.ClientX;
+    int my = me.client.y-_cvsr.ClientY;
+    lastKnownMouseX = mx;
+    lastKnownMouseY = my;
     _gwenCanvas.Input_MouseButton((me.button==2) ? 1 : 0, false);
   }
   
   void onMouseMoveHandler(MouseEvent me)
   {
-    _gwenCanvas.Input_MouseMoved(me.client.x, me.client.y,  me.client.x-lastKnownMouseX, me.client.y-lastKnownMouseY );
-    lastKnownMouseX = me.client.x;
-    lastKnownMouseY = me.client.y;
+    if(_frameNumber == 0) return;
+    int mx = me.client.x-_cvsr.ClientX;
+    int my = me.client.y-_cvsr.ClientY;
+    if(g_bShiftKeyDown)
+    {
+      notifyRedrawRequested();
+    }
+    _gwenCanvas.Input_MouseMoved(mx, my,  mx-lastKnownMouseX, my-lastKnownMouseY );
+    lastKnownMouseX = mx;
+    lastKnownMouseY = my ;
   }
+  
+  static bool g_bShiftKeyDown=false;
   
   void onKeyDownHandler(KeyboardEvent ke)
   {
-    _gwenCanvas.Input_Key(gkey, true);
+    if(_frameNumber == 0) return;
+    _gwenCanvas.Input_Key(getGwenKeyFromEvent(ke), true);
+    if(ke.shiftKey) GwenRenderer.g_bShiftKeyDown=true;
+  }
+  
+  void onKeyUpHandler(KeyboardEvent ke)
+  {
+    if(_frameNumber == 0) return;
+    _gwenCanvas.Input_Key(getGwenKeyFromEvent(ke), false);
+    GwenRenderer.g_bShiftKeyDown = ke.shiftKey;
+  }
+  
+  void onKeyPressHandler(KeyboardEvent ke)
+  {
+    if(_frameNumber == 0) return;
+    int iKey = ke.keyCode;
+    if(ke.ctrlKey)
+    {
+      if(GwenRenderer.KeyXlateDictCtrl.containsKey(iKey))
+      {
+        _gwenCanvas.Input_Character(GwenRenderer.KeyXlateDictCtrl[iKey]);
+        return;
+      }
+    }
+    if(ke.shiftKey)
+    {
+      if(GwenRenderer.KeyXlateDictShift.containsKey(iKey))
+      {
+        _gwenCanvas.Input_Character(GwenRenderer.KeyXlateDictShift[iKey]);
+        return;
+      }
+    }
+    if(GwenRenderer.KeyXlateDict.containsKey(iKey))
+    {
+      _gwenCanvas.Input_Character(GwenRenderer.KeyXlateDict[iKey]);
+      return;
+    }
+    print("Unhandled key press 0x${ke.charCode.toRadixString(16)}");
   }
 
   
   void connectEventsToGwenCanvas(GwenControlBase canvas)
   {
+    _gwenCanvas = canvas;
     _cvsr.onMouseDown.listen(onMouseDownHandler);
     _cvsr.onMouseUp.listen(onMouseUpHandler);
+    _cvsr.onMouseMove.listen(onMouseMoveHandler);
     _cvsr.onKeyDown.listen(onKeyDownHandler);
     _cvsr.onKeyUp.listen(onKeyUpHandler);
+    _cvsr.onKeyPress.listen(onKeyPressHandler);
   }
-  static const Invalid = const GwenKey._(0);
-  static const Return = const GwenKey._(1);
-  static const Backspace = const GwenKey._(2);
-  static const Delete = const GwenKey._(3);
-  static const Left = const GwenKey._(4);
-  static const Right = const GwenKey._(5);
-  static const Shift = const GwenKey._(6);
-  static const Tab = const GwenKey._(7);
-  static const Space = const GwenKey._(8);
-  static const Home = const GwenKey._(9);
-  static const End = const GwenKey._(10);
-  static const Control = const GwenKey._(11);
-  static const Up = const GwenKey._(12);
-  static const Down = const GwenKey._(13);
-  static const Escape = const GwenKey._(14);
-  static const Alt = const GwenKey._(15);
+
   
   GwenKey getGwenKeyFromEvent(KeyboardEvent ke)
   {
-    ke.keyCode
+     switch(ke.keyCode)
+     {
+       case KeyCode.BACKSPACE:
+        return GwenKey.Backspace;
+       case KeyCode.ENTER:
+         return GwenKey.Return;
+       case KeyCode.DELETE:
+         return GwenKey.Delete;
+       case KeyCode.LEFT:
+         return GwenKey.Left;
+       case KeyCode.RIGHT:
+         return GwenKey.Right;
+       case KeyCode.SHIFT:
+         return GwenKey.Shift;
+       case KeyCode.TAB:
+         return GwenKey.Tab;
+       case KeyCode.SPACE:
+         return GwenKey.Space;
+       case KeyCode.HOME:
+         return GwenKey.Home;
+       case KeyCode.END:
+         return GwenKey.End;
+       case KeyCode.CTRL:
+         return GwenKey.Control;
+       case KeyCode.UP:
+         return GwenKey.Up;
+       case KeyCode.DOWN:
+         return GwenKey.Down;
+       case KeyCode.ESC:
+         return GwenKey.Escape;
+       case KeyCode.ALT:
+         return GwenKey.Alt;
+       default:
+         return GwenKey.Invalid;
+     }
+  }
+  
+  bool _bAlreadyRendering = false;
+  bool _bRenderUpdateNeeded = true;
+  void notifyRedrawRequested()
+  {
+    bool bCanRenderNow = (null != _gwenCanvas) && !_bAlreadyRendering;
+
+    if(bCanRenderNow)
+    {
+      _bRenderUpdateNeeded = false;
+      _bAlreadyRendering = true;
+      _gwenCanvas.RenderCanvas();
+      _bAlreadyRendering = false;
+    } else
+    {
+      _bRenderUpdateNeeded = true;
+      //if(_frameNumber > 10)
+      //{
+      //  _bRenderUpdateNeeded=true;
+      //}
+    }
+  }
+  
+
+  
+  void doFrameComplete(DateTime timeCompleted)
+  {
+     _cvsr.removeCompletedRenderRequestsFromQueue();
+
+
+     /* Upon completing of some rendering, queue up another if need be. */
+     if(_bRenderUpdateNeeded)
+     {
+       print("Frame $_frameNumber finished at $timeCompleted ($lastKnownMouseX, $lastKnownMouseY)");
+       //new Future.delayed(new Duration(milliseconds: 50), notifyRedrawRequested);
+       new Future(notifyRedrawRequested);
+     } else
+     {
+       print("Frame $_frameNumber finished at $timeCompleted");
+     }
+     _frameNumber++;
+  }
+  
+  void doFrameCompleteError(err, stacktrace)
+  {
+    print( "doFrameCompleteError called.  Err: $err, stacktrace: $stacktrace");
+  }
+  
+  void SetCursor(CssCursor cursor)
+  {
+    _cvsr.setCursor(cursor.Name);
   }
   
 }

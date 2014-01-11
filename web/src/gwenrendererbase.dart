@@ -238,4 +238,8 @@ abstract class GwenRendererBase
     _clipRegion = new Rectangle<int>(left, top, width, height);
   }
   
+  void notifyRedrawRequested();
+  
+  void SetCursor(CssCursor cursor);
+  
 }

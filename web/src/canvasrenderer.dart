@@ -1,7 +1,18 @@
 
 part of gwendart;
 
-
+class RenderRequest
+{
+  DateTime timeRequested;
+  DateTime timeStarted;
+  Completer<DateTime> completer;
+  RenderRequest()
+  {
+    timeRequested = new DateTime.now();
+    timeStarted = null;
+    completer=new Completer<DateTime>();
+  }
+}
 
 class CanvasRenderer
 {
@@ -17,6 +28,9 @@ class CanvasRenderer
   webgl.Buffer _cubeVertexPositionBuffer;
   webgl.Buffer _cubeVertexIndexBuffer;
  
+  Queue<RenderRequest> _renderRequestQueue=new Queue<RenderRequest>();
+  
+  
   
   Matrix4 _pMatrix;
   Matrix4 _mvMatrix;
@@ -53,6 +67,8 @@ class CanvasRenderer
   HashMap<Object, ImageElement> _mapImageElements=new HashMap<Object, ImageElement>();
   List<Future> _listOfThingsToWaitFor = new List<Future>();
   
+  
+  
   static const String TXC_BACKCLR = "#fff";
   static const String TXC_DEFTEXTCLR = "white";
   static const int TXC_CANV_WIDTH = 512;
@@ -64,6 +80,9 @@ class CanvasRenderer
   
   int get Width => _textureCanvas.width;
   int get Height => _textureCanvas.height;
+  
+  int get ClientX => _canvas.getBoundingClientRect().left.toInt();
+  int get ClientY => _canvas.getBoundingClientRect().top.toInt();
   
   String get NameSkinTexture => _nameSkinTexture;
   
@@ -92,6 +111,8 @@ class CanvasRenderer
   
   CanvasRenderer(CanvasElement canvas, CanvasElement canvasSkinTexture, String nameSkinTexture) {
     _canvas=canvas;
+    _canvas.tabIndex = -1;
+    _canvas.focus();
     _nameSkinTexture = nameSkinTexture;
     _canvasSkinTexture= canvasSkinTexture;
     _canvasSkinTexture.width = 512;
@@ -438,6 +459,11 @@ class CanvasRenderer
   
   void start()
   {
+    removeCompletedRenderRequestsFromQueue();
+    if(_renderRequestQueue.length < 1) throw new StateError("CanvasRenderer._renderRequestQueue was empty");
+    if(_renderRequestQueue.first.timeStarted != null) 
+      throw new StateError("CanvasRenderer._renderRequestQueue first item was already started.");
+    _renderRequestQueue.first.timeStarted = new DateTime.now();
     _txContext.fillStyle = "rgba(0, 0, 0, 0)";
     _txContext.fillRect(0, 0, _textureCanvas.width, _textureCanvas.height);
     _txContext.fillStyle = _color.StyleString;
@@ -682,24 +708,93 @@ class CanvasRenderer
     _gl.flush();
   }
   
-  void _internalFinish()
+  void _internalFinish(err)
   {
+    try
+    {
     _listOfThingsToWaitFor.clear();
     render();
     flush();
     _txContext.restore();
+    } catch (err1, stacktrace)
+    {
+      _renderRequestQueue.first.completer.completeError(err1, stacktrace);
+      return;
+    }
+    if(null != err)
+    {
+      _renderRequestQueue.first.completer.completeError(err);
+    }
+    _renderRequestQueue.first.completer.complete(new DateTime.now());
   }
   
   void finish()
   {
     if(0!=_listOfThingsToWaitFor.length)
     {
-      Future.wait(_listOfThingsToWaitFor).then((_){_internalFinish();}).catchError((err) {_internalFinish();});
+      Future.wait(_listOfThingsToWaitFor).then((_){_internalFinish(null);}).catchError((err) {_internalFinish(err);});
     } else
     {
-      _internalFinish();
+      _internalFinish(null);
     }
-
+  }
+  
+  
+  /**
+   * Returns true if there is an unstarted render request in queue.
+   */
+  bool isUnstartedRenderRequestInQueue()
+  {
+    bool bUnstarted = _renderRequestQueue.length > 0;
+    if(bUnstarted)
+    {
+      bUnstarted = _renderRequestQueue.last.timeStarted == null;
+    }
+    return bUnstarted;
+  }
+  
+  /**
+   * Should be called by the routine which runs when the completer
+   * finishes, so that old stuff gets removed from the queue.
+   */
+  void removeCompletedRenderRequestsFromQueue()
+  {
+    if(_renderRequestQueue.length < 1) return;
+    RenderRequest first = _renderRequestQueue.first;
+    while(first.completer.isCompleted)
+    {
+       _renderRequestQueue.removeFirst();
+       if(_renderRequestQueue.length < 1) break;
+       first = _renderRequestQueue.first;
+    }
+  }
+  
+  /**
+   * If there already is a request in the queue that hasn't been started,
+   * this will simply update the request time to be more recent.  Otherwise,
+   * it creates a new request into the queue and returns the request object.
+   * This should be called before requesting the canvas to render.
+   */
+  RenderRequest requestRenderFrame()
+  {
+    bool bAddNew=_renderRequestQueue.length < 1;
+    if(!bAddNew)
+    {
+      bAddNew = _renderRequestQueue.last.timeStarted != null;
+    } 
+    if(bAddNew)
+    {
+      _renderRequestQueue.addLast(new RenderRequest());
+    } else
+    {
+      _renderRequestQueue.last.timeRequested = new DateTime.now();
+    }
+    return _renderRequestQueue.last;
+  }
+  
+  void setCursor(String strCssCursor)
+  {
+    _canvas.style.cursor = strCssCursor;
   }
 
 }

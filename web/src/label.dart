@@ -147,6 +147,7 @@ class Label extends GwenControlBase
      SetSize(100, 10);
      Alignment = new Pos( Pos.Top.value | Pos.Top.value);
      _autoSizeToContents=true;
+
      
      /* Add a handler so we can update MouseInputEnabled if somebody assigns a handler */
      _mouseEventHandlerAddedHandler = new MouseEventHandlerAddedHandler(this);
@@ -163,6 +164,7 @@ class Label extends GwenControlBase
       DoubleClicked.HandlerRemovedNotifyHandler = _mouseEventHandlerAddedHandler;
       RightClicked.HandlerRemovedNotifyHandler = _mouseEventHandlerAddedHandler;
       DoubleRightClicked.HandlerRemovedNotifyHandler = _mouseEventHandlerAddedHandler;
+      MouseInputEnabled=false;
    }
    
 }
