@@ -212,15 +212,15 @@ abstract class GwenRendererBase
     if (rect2.left < _clipRegion.left)
     {
       width -= (_clipRegion.left - r.left);
-      right -= (_clipRegion.left - r.left);
       left = _clipRegion.left;
+      right = left+width;
     }
 
     if (rect2.top < _clipRegion.top)
     {
       height -= (_clipRegion.top - r.top);
-      bottom -= (_clipRegion.top - r.top);
       top = _clipRegion.top;
+      bottom = top + height;
     }
 
     if (right > _clipRegion.right)

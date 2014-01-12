@@ -5,12 +5,14 @@ class RenderRequest
 {
   DateTime timeRequested;
   DateTime timeStarted;
-  Completer<DateTime> completer;
+  DateTime timeFinished;
+  Completer<RenderRequest> completer;
   RenderRequest()
   {
     timeRequested = new DateTime.now();
     timeStarted = null;
-    completer=new Completer<DateTime>();
+    timeFinished = null;
+    completer=new Completer<RenderRequest>();
   }
 }
 
@@ -473,6 +475,9 @@ class CanvasRenderer
   void unclipCanvas()
   {
     _txContext.restore();
+    _txContext.beginPath();
+    _txContext.rect(0, 0, _viewportWidth, _viewportHeight);
+    _txContext.clip();
   }
   
   void clipCanvas(Rectangle<int> rect)
@@ -481,6 +486,7 @@ class CanvasRenderer
     _txContext.save();
     _txContext.beginPath();
     _txContext.rect(rect.left, rect.top, rect.width, rect.height);
+    _txContext.clip();
   }
   
   void drawPixelOnCanvas(int x, int y)
@@ -590,6 +596,7 @@ class CanvasRenderer
     if(data == null) throw new UnimplementedError("eek");
     
     /* Apply color key to make all pixels of a certain color be transparent. */
+    /*
     Iterator<int> iter = data.data.iterator;
     int iPixel=0;
     while(iter.moveNext())
@@ -606,7 +613,7 @@ class CanvasRenderer
       }
       iPixel++;
     }
-
+    */
     
     _gl.bindTexture(webgl.RenderingContext.TEXTURE_2D, _neheTexture);
     _gl.pixelStorei(webgl.RenderingContext.UNPACK_FLIP_Y_WEBGL, 1); // second argument must be an int
@@ -716,16 +723,20 @@ class CanvasRenderer
     render();
     flush();
     _txContext.restore();
+    _renderRequestQueue.first.timeFinished = new DateTime.now();
     } catch (err1, stacktrace)
     {
+      _renderRequestQueue.first.timeFinished = new DateTime.now();
       _renderRequestQueue.first.completer.completeError(err1, stacktrace);
       return;
     }
     if(null != err)
     {
       _renderRequestQueue.first.completer.completeError(err);
+    } else
+    {
+      _renderRequestQueue.first.completer.complete(_renderRequestQueue.first);
     }
-    _renderRequestQueue.first.completer.complete(new DateTime.now());
   }
   
   void finish()

@@ -545,15 +545,16 @@ class GwenRenderer extends GwenRendererBase
   
 
   
-  void doFrameComplete(DateTime timeCompleted)
+  void doFrameComplete(RenderRequest rreq)
   {
+    Duration timeCompleted= rreq.timeFinished.difference(rreq.timeStarted);
      _cvsr.removeCompletedRenderRequestsFromQueue();
 
 
      /* Upon completing of some rendering, queue up another if need be. */
      if(_bRenderUpdateNeeded)
      {
-       print("Frame $_frameNumber finished at $timeCompleted ($lastKnownMouseX, $lastKnownMouseY)");
+       print("Frame $_frameNumber took ${timeCompleted.inMilliseconds} ($lastKnownMouseX, $lastKnownMouseY)");
        //new Future.delayed(new Duration(milliseconds: 50), notifyRedrawRequested);
        new Future(notifyRedrawRequested);
      } else

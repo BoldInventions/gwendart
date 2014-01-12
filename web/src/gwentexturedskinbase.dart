@@ -781,7 +781,7 @@ class GwenTexturedSkinBase extends GwenSkinBase
     Renderer.DrawColor = m_colLighter;
 
     Renderer.drawFilledRect(new Rectangle(rect.left + 1, rect.top + 1, textStart - 3, 1));
-    Renderer.drawFilledRect(new Rectangle(rect.left + 1 + textStart + textWidth, rect.top + 1, rect.width - textStart + textWidth - 2, 1));
+    Renderer.drawFilledRect(new Rectangle(rect.left + 1 + textStart + textWidth, rect.top + 1, rect.width - textStart - textWidth - 2, 1));
     Renderer.drawFilledRect(new Rectangle(rect.left + 1, (rect.top + rect.height) - 1, rect.left + rect.width - 2, 1));
 
     Renderer.drawFilledRect(new Rectangle(rect.left + 1, rect.top + 1, 1, rect.height));

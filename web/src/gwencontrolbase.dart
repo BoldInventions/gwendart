@@ -381,7 +381,8 @@ class GwenControlBase
         /// <summary>
         /// Size restriction.
         /// </summary>
-        Point<int> get MaximumSize  { return m_MaximumSize; } set MaximumSize(Point<int> value){ m_MaximumSize = value; }
+        Point<int> get MaximumSize  { return m_MaximumSize; } 
+        set MaximumSize(Point<int> value){ m_MaximumSize = value; }
 
         Point<int>  m_MinimumSize = new Point<int>(1, 1);
         Point<int>  m_MaximumSize = new Point<int>(MaxCoord, MaxCoord);
@@ -950,6 +951,11 @@ class GwenControlBase
                 m_Bounds.width == width &&
                 m_Bounds.height == height)
                 return false;
+            
+            if(0 > width)
+            {
+              print("width negative");
+            }
 
             Rectangle oldBounds = Bounds;
 
@@ -1157,6 +1163,10 @@ class GwenControlBase
             RenderUnder(skin);
 
             Rectangle oldRegion = render.ClipRegion;
+            if(this is VerticalScrollBar)
+            {
+              if(render==null) print("never");
+            }
 
             if (ShouldClip)
             {
@@ -1533,6 +1543,10 @@ class GwenControlBase
 
             for(GwenControlBase child in m_Children)
             {
+               // if(child is Button)
+               // {
+                //  print("Control.RecurseLayout child is button");
+               // }
                 if (child.IsHidden)
                     continue;
 
@@ -1565,7 +1579,10 @@ class GwenControlBase
                     width -= width2;
                 }
                 
-       
+       if(this is VerticalScrollBar)
+       {
+         if(null == left) print("lal al al a");
+       }
 
                 if (0 != (dock.value & Pos.Right.value))
                 {
@@ -1585,7 +1602,7 @@ class GwenControlBase
                     GwenMargin margin = child.Margin;
 
                     child.SetBounds(left + margin.Left,
-                                      (top + bounds.height) - child.Height - margin.Bottom,
+                                      (top + height) - child.Height - margin.Bottom,
                                       width - margin.Left - margin.Right, child.Height);
                     height -= child.Height + margin.Bottom + margin.Top;
                 }
