@@ -381,6 +381,14 @@ class CanvasRenderer
        Rectangle srcRect = new Rectangle(
            elem.width * u1, elem.height*v1, elem.width*(u2-u1), elem.height*(v2-v1)
            );
+       if( (srcRect.width<1) || (srcRect.height<1) || (srcRect.left<0) || (srcRect.top<0)
+           ||(srcRect.left>=elem.width) || (srcRect.top>=elem.height)|| (srcRect.bottom < 0) || (srcRect.bottom>=elem.height)
+           || (srcRect.right < 0) || (srcRect.right > elem.width))
+       {
+         return;
+       }
+       if(rect.width < 1) return;
+       if(rect.height< 1) return;
        _txContext.drawImageToRect(elem,rect, sourceRect: srcRect);
     }
   }

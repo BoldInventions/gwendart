@@ -292,6 +292,13 @@ PlainJavaScriptObject: {"": "JavaScriptObject;"},
 UnknownJavaScriptObject: {"": "JavaScriptObject;"},
 
 JSArray: {"": "List/Interceptor;",
+  insert$2: function(receiver, index, value) {
+    if (index < 0 || index > receiver.length)
+      throw H.wrapException(P.RangeError$value(index));
+    if (!!receiver.fixed$length)
+      H.throwExpression(P.UnsupportedError$("insert"));
+    receiver.splice(index, 0, value);
+  },
   remove$1: function(receiver, element) {
     var i;
     if (!!receiver.fixed$length)
@@ -433,6 +440,8 @@ JSNumber: {"": "num/Interceptor;",
     return receiver - other;
   },
   $div: function(receiver, other) {
+    if (typeof other !== "number")
+      throw H.wrapException(new P.ArgumentError(other));
     return receiver / other;
   },
   $mul: function(receiver, other) {
@@ -481,6 +490,11 @@ JSNumber: {"": "num/Interceptor;",
     if (typeof other !== "number")
       throw H.wrapException(P.ArgumentError$(other));
     return receiver > other;
+  },
+  $le: function(receiver, other) {
+    if (typeof other !== "number")
+      throw H.wrapException(new P.ArgumentError(other));
+    return receiver <= other;
   },
   $ge: function(receiver, other) {
     if (typeof other !== "number")
@@ -5182,8 +5196,11 @@ Duration: {"": "Object;_duration<",
   $gt: function(_, other) {
     return this._duration > other.get$_duration();
   },
+  $le: function(_, other) {
+    return C.JSNumber_methods.$le(this._duration, other.get$_duration());
+  },
   $ge: function(_, other) {
-    return C.JSNumber_methods.$ge(this._duration, other.get$_duration());
+    return this._duration >= other.get$_duration();
   },
   $eq: function(_, other) {
     var t1;
@@ -5542,6 +5559,12 @@ CanvasRenderingContext: {"": "Interceptor;", "%": ";CanvasRenderingContext"},
 CanvasRenderingContext2D: {"": "CanvasRenderingContext;fillStyle},font=,strokeStyle},textAlign},textBaseline}",
   beginPath$0: function(receiver) {
     return receiver.beginPath();
+  },
+  clip$1: function(receiver, winding) {
+    return receiver.clip(winding);
+  },
+  clip$0: function($receiver) {
+    return $receiver.clip();
   },
   fillRect$4: function(receiver, x, y, width, height) {
     return receiver.fillRect(x, y, width, height);
@@ -6609,6 +6632,16 @@ GwenUtil_scharIsControl: function(schar) {
   return X.GwenUtil_icharIsControl(C.JSString_methods.codeUnitAt$1(schar, 0));
 },
 
+GwenUtil_Clamp: function(x, min, max) {
+  if (typeof x !== "number")
+    throw x.$lt();
+  if (x < min)
+    return min;
+  if (x > max)
+    return max;
+  return x;
+},
+
 InputHandler_init: function() {
   var t1, i, t2;
   for (t1 = C.GwenKey_16.value, i = 0; i < t1; ++i) {
@@ -6849,7 +6882,7 @@ InputHandler_UpdateHoveredControl: function(inCanvas) {
   t1 = $.InputHandler_HoveredControl;
   if (hovered == null ? t1 != null : hovered !== t1) {
     if (t1 != null) {
-      P.print("Hover: " + H.S(t1.m_Name));
+      P.print("Hover: " + t1.m_Name);
       oldHover = $.InputHandler_HoveredControl;
       $.InputHandler_HoveredControl = null;
       oldHover.OnMouseLeft$0();
@@ -7384,13 +7417,35 @@ CanvasRenderer: {"": "Object;_canvas,_gl,_shaderProgram,_viewportWidth,_viewport
     this._color = clr;
   },
   _drawTexturedRect$6: function(elem, rect, u1, v1, u2, v2) {
-    var t1, srcRect;
+    var t1, srcRect, t2, t3, t4, t5, t6, t7;
     if (u1 === 0 && v1 === 0 && u2 === 1 && v2 === 1)
       J.drawImageToRect$2$x(this._txContext, elem, rect);
     else {
       t1 = J.getInterceptor$x(elem);
       srcRect = new P.Rectangle(J.$mul$n(t1.get$width(elem), u1), J.$mul$n(t1.get$height(elem), v1), J.$mul$n(t1.get$width(elem), u2 - u1), J.$mul$n(t1.get$height(elem), v2 - v1));
       H.setRuntimeTypeInfo(srcRect, [null]);
+      t2 = srcRect.width;
+      if (!J.$lt$n(t2, 1)) {
+        t3 = srcRect.height;
+        if (!J.$lt$n(t3, 1)) {
+          t4 = srcRect.left;
+          t5 = J.getInterceptor$n(t4);
+          if (!t5.$lt(t4, 0)) {
+            t6 = srcRect.top;
+            t7 = J.getInterceptor$n(t6);
+            t1 = t7.$lt(t6, 0) || t5.$ge(t4, t1.get$width(elem)) || t7.$ge(t6, t1.get$height(elem)) || J.$lt$n(t7.$add(t6, t3), 0) || J.$ge$n(t7.$add(t6, t3), t1.get$height(elem)) || J.$lt$n(t5.$add(t4, t2), 0) || J.$gt$n(t5.$add(t4, t2), t1.get$width(elem));
+          } else
+            t1 = true;
+        } else
+          t1 = true;
+      } else
+        t1 = true;
+      if (t1)
+        return;
+      if (J.$lt$n(rect.width, 1))
+        return;
+      if (J.$lt$n(rect.height, 1))
+        return;
       J.drawImageToRect$3$sourceRect$x(this._txContext, elem, rect, srcRect);
     }
   },
@@ -7433,11 +7488,18 @@ CanvasRenderer: {"": "Object;_canvas,_gl,_shaderProgram,_viewportWidth,_viewport
     J.set$fillStyle$x(this._txContext, this._color.get$StyleString());
     J.save$0$x(this._txContext);
   },
+  unclipCanvas$0: function() {
+    J.restore$0$x(this._txContext);
+    J.beginPath$0$x(this._txContext);
+    J.rect$4$x(this._txContext, 0, 0, this._viewportWidth, this._viewportHeight);
+    J.clip$0$x(this._txContext);
+  },
   clipCanvas$1: function(rect) {
     J.restore$0$x(this._txContext);
     J.save$0$x(this._txContext);
     J.beginPath$0$x(this._txContext);
     J.rect$4$x(this._txContext, rect.left, rect.top, rect.width, rect.height);
+    J.clip$0$x(this._txContext);
   },
   drawLineOnCanvas$4: function(x0, y0, x1, y1) {
     J.set$strokeStyle$x(this._txContext, this._color.get$StyleString());
@@ -8049,7 +8111,7 @@ Dragger$: function($parent) {
 
 },
 
-GroupBox: {"": "Label;_text,_align,_textPadding,_autoSizeToContents,_mouseEventHandlerAddedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+GroupBox: {"": "Label;",
   Layout$1: function(skin) {
     X.Label.prototype.Layout$1.call(this, skin);
     if (this._autoSizeToContents === true)
@@ -8096,35 +8158,7 @@ GroupBox: {"": "Label;_text,_align,_textPadding,_autoSizeToContents,_mouseEventH
     this.m_InnerPanel = X.GwenControlBase$(this);
     this.m_InnerPanel.set$Dock(C.Pos_128);
     this.m_InnerPanel.set$Margin(new X.GwenMargin(J.$add$ns(this._text.m_Bounds.height, 5), 5, 5, 5));
-  },
-  static: {
-GroupBox$: function($parent) {
-  var t1, t2, t3, t4, t5, t6, t7, t8, t9;
-  t1 = P.List_List(null, X.GwenEventHandler);
-  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
-  t2 = P.List_List(null, X.GwenEventHandler);
-  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
-  t3 = P.List_List(null, X.GwenEventHandler);
-  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
-  t4 = P.List_List(null, X.GwenEventHandler);
-  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
-  t5 = P.List_List(null, X.GwenEventHandler);
-  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
-  t6 = P.List_List(null, X.GwenEventHandler);
-  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
-  t7 = P.List_List(null, X.GwenEventHandler);
-  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
-  t8 = new P.Point(1, 1);
-  H.setRuntimeTypeInfo(t8, [J.JSInt]);
-  t9 = new P.Point(4096, 4096);
-  H.setRuntimeTypeInfo(t9, [J.JSInt]);
-  t9 = new X.GroupBox(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
-  t9.GwenControlBase$1($parent);
-  t9.Label$1($parent);
-  t9.GroupBox$1($parent);
-  return t9;
-}}
-
+  }
 },
 
 GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
@@ -8153,8 +8187,8 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     return this.m_Dock;
   },
   set$Dock: function(value) {
-    var t1;
-    if (this.m_Dock === value)
+    var t1 = this.m_Dock;
+    if (t1 == null ? value == null : t1 === value)
       return;
     this.m_Dock = value;
     this.m_NeedsLayout = true;
@@ -8199,8 +8233,8 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     }
   },
   set$Margin: function(value) {
-    var t1;
-    if (this.m_Margin === value)
+    var t1 = this.m_Margin;
+    if (t1 == null ? value == null : t1 === value)
       return;
     this.m_Margin = value;
     this.m_NeedsLayout = true;
@@ -8244,6 +8278,14 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
   get$X: function() {
     return this.m_Bounds.left;
   },
+  get$Bottom: function() {
+    var t1 = this.m_Bounds;
+    return J.$add$ns(J.$add$ns(t1.top, t1.height), this.m_Margin.Bottom);
+  },
+  get$Right: function() {
+    var t1 = this.m_Bounds;
+    return J.$add$ns(J.$add$ns(t1.left, t1.width), this.m_Margin.Right);
+  },
   GetCanvas$0: function() {
     var canvas = this.m_Parent;
     if (canvas == null)
@@ -8270,6 +8312,27 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
   Invalidate$0: function() {
     this.m_NeedsLayout = true;
     this.m_CacheTextureDirty = true;
+  },
+  SendToBack$0: function() {
+    var t1, t2;
+    t1 = this.m_ActualParent;
+    if (t1 == null)
+      return;
+    t1 = t1.m_Children;
+    t2 = t1.length;
+    if (t2 === 0)
+      return;
+    if (0 >= t2)
+      throw H.ioore(t1, 0);
+    if (J.$eq(t1[0], this))
+      return;
+    C.JSArray_methods.remove$1(this.m_ActualParent.m_Children, this);
+    C.JSArray_methods.insert$2(this.m_ActualParent.m_Children, 0, this);
+    t1 = this.m_Parent;
+    if (t1 != null) {
+      t1.m_NeedsLayout = true;
+      t1.m_CacheTextureDirty = true;
+    }
   },
   BringToFront$0: function() {
     var t1, t2, t3;
@@ -8310,7 +8373,7 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
   },
   RemoveChild$2: function(child, dispose) {
     var t1 = this.m_InnerPanel;
-    if (t1 === child) {
+    if (t1 == null ? child == null : t1 === child) {
       C.JSArray_methods.remove$1(this.m_Children, t1);
       t1 = this.m_InnerPanel;
       t1.GetCanvas$0().RemoveChild$2(t1, false);
@@ -8328,42 +8391,21 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
       child.GetCanvas$0().RemoveChild$2(child, false);
   },
   MoveTo$2: function(ix, iy) {
-    var $parent, t1, t2, t3, t4;
+    var $parent, t1, t2;
     if (this.m_RestrictToParent === true && this.m_Parent != null) {
       $parent = this.m_Parent;
-      t1 = this.m_Padding;
-      t2 = t1.Left;
-      if (typeof ix !== "number")
-        throw ix.$sub();
-      t3 = $parent.m_Margin;
-      t4 = t3.Left;
-      if (ix - t2 < t4)
-        ix = t4 + t2;
-      t1 = t1.Top;
-      if (typeof iy !== "number")
-        throw iy.$sub();
-      t3 = t3.Top;
-      if (typeof t3 !== "number")
-        throw H.iae(t3);
-      if (iy - t1 < t3)
-        iy = t3 + t1;
-      t1 = this.m_Bounds.width;
-      if (typeof t1 !== "number")
-        throw H.iae(t1);
-      t2 = this.m_Padding.Right;
-      t3 = J.$sub$n($parent.m_Bounds.width, $parent.m_Margin.Right);
-      if (typeof t3 !== "number")
-        throw H.iae(t3);
-      if (ix + t1 + t2 > t3)
+      if (J.$lt$n(J.$sub$n(ix, this.m_Padding.Left), $parent.m_Margin.Left)) {
+        t1 = $parent.m_Margin.Left;
+        t2 = this.m_Padding.Left;
+        if (typeof t2 !== "number")
+          throw H.iae(t2);
+        ix = t1 + t2;
+      }
+      if (J.$lt$n(J.$sub$n(iy, this.m_Padding.Top), $parent.m_Margin.Top))
+        iy = J.$add$ns($parent.m_Margin.Top, this.m_Padding.Top);
+      if (J.$gt$n(J.$add$ns(J.$add$ns(ix, this.m_Bounds.width), this.m_Padding.Right), J.$sub$n($parent.m_Bounds.width, $parent.m_Margin.Right)))
         ix = J.$sub$n(J.$sub$n(J.$sub$n($parent.m_Bounds.width, $parent.m_Margin.Right), this.m_Bounds.width), this.m_Padding.Right);
-      t1 = this.m_Bounds.height;
-      if (typeof t1 !== "number")
-        throw H.iae(t1);
-      t2 = this.m_Padding.Bottom;
-      t3 = J.$sub$n($parent.m_Bounds.height, $parent.m_Margin.Bottom);
-      if (typeof t3 !== "number")
-        throw H.iae(t3);
-      if (iy + t1 + t2 > t3)
+      if (J.$gt$n(J.$add$ns(J.$add$ns(iy, this.m_Bounds.height), this.m_Padding.Bottom), J.$sub$n($parent.m_Bounds.height, $parent.m_Margin.Bottom)))
         iy = J.$sub$n(J.$sub$n(J.$sub$n($parent.m_Bounds.height, $parent.m_Margin.Bottom), this.m_Bounds.height), this.m_Padding.Bottom);
     }
     t1 = this.m_Bounds;
@@ -8373,6 +8415,10 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     var oldBounds, t1;
     if (J.$eq(this.m_Bounds.left, x) && J.$eq(this.m_Bounds.top, y) && J.$eq(this.m_Bounds.width, width) && J.$eq(this.m_Bounds.height, height))
       return false;
+    if (typeof width !== "number")
+      throw H.iae(width);
+    if (0 > width)
+      P.print("width negative");
     oldBounds = this.m_Bounds;
     t1 = new P.Rectangle(x, y, width, height);
     H.setRuntimeTypeInfo(t1, [J.JSInt]);
@@ -8384,7 +8430,7 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
   OnBoundsChanged$1: function(oldBounds) {
     var t1 = this.m_Parent;
     if (t1 != null)
-      t1.toString;
+      t1.OnChildBoundsChanged$2(oldBounds, this);
     if (!J.$eq(this.m_Bounds.width, oldBounds.width) || !J.$eq(this.m_Bounds.height, oldBounds.height)) {
       this.m_NeedsLayout = true;
       this.m_CacheTextureDirty = true;
@@ -8395,6 +8441,8 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
   OnScaleChanged$0: function() {
     for (var t1 = this.m_Children, t1 = new H.ListIterator(t1, t1.length, 0, null); t1.moveNext$0();)
       t1._current.OnScaleChanged$0();
+  },
+  OnChildBoundsChanged$2: function(oldChildBounds, child) {
   },
   Render$1: function(skin) {
   },
@@ -8414,6 +8462,8 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     render.AddRenderOffset$1(clipRect);
     this.RenderUnder$1(skin);
     oldRegion = render._clipRegion;
+    if (!!this.$isVerticalScrollBar)
+      ;
     render.AddClipRegion$1(clipRect);
     if (!render.get$ClipRegionVisible()) {
       render._renderOffset = oldRenderOffset;
@@ -8572,7 +8622,7 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     skin._renderer;
   },
   RecurseLayout$1: function(skin) {
-    var skin0, bounds, height, left, t1, width, $top, t2, height0, t3, t4, t5, t6, t7, child, t8, margin, t9, t10, t11, t12, height2, width2;
+    var skin0, bounds, height, left, t1, width, $top, t2, height0, t3, t4, t5, t6, t7, t8, child, t9, margin, t10, t11, t12, t13, height2, width2;
     skin0 = this.m_Skin;
     if (skin0 != null)
       skin = skin0;
@@ -8586,80 +8636,83 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     height = bounds.height;
     left = J.$add$ns(bounds.left, this.m_Padding.Left);
     t1 = this.m_Padding;
-    width = J.$sub$n(bounds.width, t1.Left + t1.Right);
+    width = J.$sub$n(bounds.width, J.$add$ns(t1.Left, t1.Right));
     $top = J.$add$ns(bounds.top, this.m_Padding.Top);
     t1 = this.m_Padding;
     t2 = J.getInterceptor$n(height);
-    height0 = t2.$sub(height, t1.Top + t1.Bottom);
-    for (t1 = this.m_Children, t1 = new H.ListIterator(t1, t1.length, 0, null), t3 = C.Pos_16.value, t4 = C.Pos_4.value, t5 = C.Pos_2.value, t6 = C.Pos_8.value, t7 = C.Pos_128.value; t1.moveNext$0();) {
+    height0 = t2.$sub(height, J.$add$ns(t1.Top, t1.Bottom));
+    for (t1 = this.m_Children, t1 = new H.ListIterator(t1, t1.length, 0, null), t3 = C.Pos_16.value, t4 = C.Pos_4.value, t5 = !!this.$isVerticalScrollBar, t6 = C.Pos_2.value, t7 = C.Pos_8.value, t8 = C.Pos_128.value; t1.moveNext$0();) {
       child = t1._current;
       if (child.get$IsHidden() === true)
         continue;
-      t8 = child.m_Dock.value;
-      if (0 !== (t8 & t7) >>> 0)
+      t9 = child.m_Dock.value;
+      if (0 !== (t9 & t8) >>> 0)
         continue;
-      if (0 !== (t8 & t6) >>> 0) {
+      if (0 !== (t9 & t7) >>> 0) {
+        margin = child.m_Margin;
+        t10 = margin.Left;
+        t11 = J.$add$ns(left, t10);
+        t12 = margin.Top;
+        t13 = J.getInterceptor$ns($top);
+        child.SetBounds$4(t11, t13.$add($top, t12), J.$sub$n(J.$sub$n(width, t10), margin.Right), child.m_Bounds.height);
+        height2 = J.$add$ns(J.$add$ns(t12, margin.Bottom), child.m_Bounds.height);
+        $top = t13.$add($top, height2);
+        height0 = J.$sub$n(height0, height2);
+      }
+      if (0 !== (t9 & t6) >>> 0) {
+        margin = child.m_Margin;
+        t10 = margin.Left;
+        t11 = J.getInterceptor$ns(left);
+        t12 = t11.$add(left, t10);
+        t13 = margin.Top;
+        child.SetBounds$4(t12, J.$add$ns($top, t13), child.m_Bounds.width, J.$sub$n(J.$sub$n(height0, t13), margin.Bottom));
+        t13 = margin.Right;
+        t12 = child.m_Bounds.width;
+        if (typeof t12 !== "number")
+          throw H.iae(t12);
+        width2 = t10 + t13 + t12;
+        left = t11.$add(left, width2);
+        width = J.$sub$n(width, width2);
+      }
+      if (t5)
+        ;
+      if (0 !== (t9 & t4) >>> 0) {
+        margin = child.m_Margin;
+        t10 = J.$sub$n(J.$add$ns(left, width), child.m_Bounds.width);
+        t11 = margin.Right;
+        t10 = J.$sub$n(t10, t11);
+        t12 = margin.Top;
+        child.SetBounds$4(t10, J.$add$ns($top, t12), child.m_Bounds.width, J.$sub$n(J.$sub$n(height0, t12), margin.Bottom));
+        t12 = margin.Left;
+        t10 = child.m_Bounds.width;
+        if (typeof t10 !== "number")
+          throw H.iae(t10);
+        width = J.$sub$n(width, t12 + t11 + t10);
+      }
+      if (0 !== (t9 & t3) >>> 0) {
         margin = child.m_Margin;
         t9 = margin.Left;
         t10 = J.$add$ns(left, t9);
-        t11 = margin.Top;
-        t12 = J.getInterceptor$ns($top);
-        child.SetBounds$4(t10, t12.$add($top, t11), J.$sub$n(J.$sub$n(width, t9), margin.Right), child.m_Bounds.height);
-        height2 = J.$add$ns(J.$add$ns(t11, margin.Bottom), child.m_Bounds.height);
-        $top = t12.$add($top, height2);
-        height0 = J.$sub$n(height0, height2);
-      }
-      if (0 !== (t8 & t5) >>> 0) {
-        margin = child.m_Margin;
-        t9 = margin.Left;
-        t10 = J.getInterceptor$ns(left);
-        t11 = t10.$add(left, t9);
-        t12 = margin.Top;
-        child.SetBounds$4(t11, J.$add$ns($top, t12), child.m_Bounds.width, J.$sub$n(J.$sub$n(height0, t12), margin.Bottom));
-        t12 = margin.Right;
-        t11 = child.m_Bounds.width;
-        if (typeof t11 !== "number")
-          throw H.iae(t11);
-        width2 = t9 + t12 + t11;
-        left = t10.$add(left, width2);
-        width = J.$sub$n(width, width2);
-      }
-      if (0 !== (t8 & t4) >>> 0) {
-        margin = child.m_Margin;
-        t9 = J.$sub$n(J.$add$ns(left, width), child.m_Bounds.width);
-        t10 = margin.Right;
-        t9 = J.$sub$n(t9, t10);
-        t11 = margin.Top;
-        child.SetBounds$4(t9, J.$add$ns($top, t11), child.m_Bounds.width, J.$sub$n(J.$sub$n(height0, t11), margin.Bottom));
-        t11 = margin.Left;
-        t9 = child.m_Bounds.width;
-        if (typeof t9 !== "number")
-          throw H.iae(t9);
-        width = J.$sub$n(width, t11 + t10 + t9);
-      }
-      if (0 !== (t8 & t3) >>> 0) {
-        margin = child.m_Margin;
-        t8 = margin.Left;
-        t9 = J.$add$ns(left, t8);
-        t10 = J.$sub$n(J.$add$ns($top, height), child.m_Bounds.height);
-        t11 = margin.Bottom;
-        child.SetBounds$4(t9, J.$sub$n(t10, t11), J.$sub$n(J.$sub$n(width, t8), margin.Right), child.m_Bounds.height);
-        height0 = J.$sub$n(height0, J.$add$ns(J.$add$ns(child.m_Bounds.height, t11), margin.Top));
+        t11 = J.$sub$n(J.$add$ns($top, height0), child.m_Bounds.height);
+        t12 = margin.Bottom;
+        child.SetBounds$4(t10, J.$sub$n(t11, t12), J.$sub$n(J.$sub$n(width, t9), margin.Right), child.m_Bounds.height);
+        height0 = J.$sub$n(height0, J.$add$ns(J.$add$ns(child.m_Bounds.height, t12), margin.Top));
       }
       child.RecurseLayout$1(skin);
     }
     this.m_InnerBounds = this.m_RenderBounds;
     for (t1 = this.m_Children, t1 = new H.ListIterator(t1, t1.length, 0, null), t3 = J.getInterceptor$ns(left), t4 = J.getInterceptor$ns($top), t5 = J.getInterceptor$n(width); t1.moveNext$0();) {
       child = t1._current;
-      if (0 === (child.get$Dock().value & t7) >>> 0)
+      if (0 === (child.get$Dock().value & t8) >>> 0)
         continue;
       margin = child.m_Margin;
       t6 = margin.Left;
-      t8 = t3.$add(left, t6);
+      t7 = t3.$add(left, t6);
       t9 = margin.Top;
-      child.SetBounds$4(t8, t4.$add($top, t9), J.$sub$n(t5.$sub(width, t6), margin.Right), J.$sub$n(t2.$sub(height, t9), margin.Bottom));
+      child.SetBounds$4(t7, t4.$add($top, t9), J.$sub$n(t5.$sub(width, t6), margin.Right), J.$sub$n(t2.$sub(height, t9), margin.Bottom));
       child.RecurseLayout$1(skin);
     }
+    this.PostLayout$1(skin);
     if (this.m_Tabable === true) {
       if (this.GetCanvas$0()._firstTab == null)
         this.GetCanvas$0()._firstTab = this;
@@ -8767,10 +8820,14 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     t3 = t2.Right;
     if (typeof t1 !== "number")
       throw t1.$add();
+    if (typeof t3 !== "number")
+      throw H.iae(t3);
     t4 = size.y;
     t2 = t2.Bottom;
     if (typeof t4 !== "number")
       throw t4.$add();
+    if (typeof t2 !== "number")
+      throw H.iae(t2);
     size = new P.Point(t1 + t3, t4 + t2);
     H.setRuntimeTypeInfo(size, [J.JSInt]);
     t1 = width ? size.x : this.m_Bounds.width;
@@ -8809,6 +8866,8 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     if (t1.length > 0)
       return t1[0].HandleAccelerator$1(accelerator);
     return false;
+  },
+  PostLayout$1: function(skin) {
   },
   Redraw$0: function() {
     this.UpdateColors$0();
@@ -9018,7 +9077,7 @@ GwenControlCanvas: {"": "GwenControlBase;NeedsRedraw,_scale,_backgroundColor,_fi
       render.drawFilledRect$1(this.m_RenderBounds);
     }
     this.DoRender$1(this.get$Skin());
-    J.restore$0$x(render._cvsr._txContext);
+    render._cvsr.unclipCanvas$0();
     t1 = render._cvsr;
     t1.finish$0(t1);
   },
@@ -9223,7 +9282,7 @@ GwenFont: {"": "Object;",
 },
 
 GwenKey: {"": "Object;value>", static: {
-"": "GwenKey_Invalid,GwenKey_Return,GwenKey_Backspace,GwenKey_Delete,GwenKey_Left,GwenKey_Right,GwenKey_Shift,GwenKey_Tab,GwenKey_Space,GwenKey_Home,GwenKey_End,GwenKey_Control,GwenKey_Up,GwenKey_Down,GwenKey_Escape,GwenKey_Alt,GwenKey_Count",
+"": "GwenKey_Invalid,GwenKey_Return,GwenKey_Backspace,GwenKey_Delete,GwenKey_Left,GwenKey_Right<,GwenKey_Shift,GwenKey_Tab,GwenKey_Space,GwenKey_Home,GwenKey_End,GwenKey_Control,GwenKey_Up,GwenKey_Down,GwenKey_Escape,GwenKey_Alt,GwenKey_Count",
 GwenKey_getKeyFromValue: function(iKey) {
   var t1, key;
   for (t1 = new H.ListIterator([C.GwenKey_0, C.GwenKey_1, C.GwenKey_2, C.GwenKey_3, C.GwenKey_4, C.GwenKey_5, C.GwenKey_6, C.GwenKey_7, C.GwenKey_8, C.GwenKey_9, C.GwenKey_10, C.GwenKey_11, C.GwenKey_12, C.GwenKey_13, C.GwenKey_14, C.GwenKey_15, C.GwenKey_16], 17, 0, null); t1.moveNext$0();) {
@@ -9235,7 +9294,7 @@ GwenKey_getKeyFromValue: function(iKey) {
 }}
 },
 
-GwenMargin: {"": "Object;Top,Bottom,Left,Right",
+GwenMargin: {"": "Object;Top,Bottom<,Left,Right<",
   get$hashCode: function(_) {
     var t1 = J.$mul$n(this.Top, 397);
     if (typeof t1 !== "number")
@@ -9835,13 +9894,13 @@ GwenRendererBase: {"": "Object;",
     bottom = rect2.$add($top, height);
     if (t1.$lt(left, this._clipRegion.left)) {
       width = J.$sub$n(width, J.$sub$n(this._clipRegion.left, left));
-      right = J.$sub$n(right, J.$sub$n(this._clipRegion.left, left));
       left = this._clipRegion.left;
+      right = J.$add$ns(left, width);
     }
     if (rect2.$lt($top, this._clipRegion.top)) {
       height = J.$sub$n(height, J.$sub$n(this._clipRegion.top, $top));
-      bottom = J.$sub$n(bottom, J.$sub$n(this._clipRegion.top, $top));
       $top = this._clipRegion.top;
+      bottom = J.$add$ns($top, height);
     }
     t1 = this._clipRegion;
     if (J.$gt$n(right, J.$add$ns(t1.left, t1.width))) {
@@ -9865,6 +9924,164 @@ GwenRendererBase: {"": "Object;",
     this._renderOffset = t1;
     this.set$Scale(1);
     this.get$CTT();
+  }
+},
+
+ScrollBar: {"": "GwenControlBase;",
+  get$NudgeAmount: function() {
+    var t1, t2;
+    t1 = this._nudgeAmount;
+    t2 = this._contentSize;
+    if (typeof t1 !== "number")
+      throw t1.$div();
+    if (typeof t2 !== "number")
+      throw H.iae(t2);
+    return t1 / t2;
+  },
+  set$NudgeAmount: function(value) {
+    this._nudgeAmount = value;
+  },
+  set$ContentSize: function(value) {
+    if (this._contentSize !== value) {
+      this.m_NeedsLayout = true;
+      this.m_CacheTextureDirty = true;
+    }
+    this._contentSize = value;
+  },
+  set$ViewableContentSize: function(value) {
+    if (this._viewableContentSize !== value) {
+      this.m_NeedsLayout = true;
+      this.m_CacheTextureDirty = true;
+    }
+    this._viewableContentSize = value;
+  },
+  get$IsHorizontal: function() {
+    return false;
+  },
+  SetScrollAmount$2: function(value, forceUpdate) {
+    if (this._scrollAmount === value && !forceUpdate)
+      return false;
+    this._scrollAmount = value;
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+    this.OnBarMoved$2(this, $.get$GwenEventArgs_Empty());
+    return true;
+  },
+  OnMouseClickedLeft$3: function(x, y, down) {
+  },
+  Render$1: function(skin) {
+    skin.DrawScrollBar$3(this, this.get$IsHorizontal(), this._depressed);
+  },
+  OnBarMoved$2: function(control, args) {
+    this.BarMoved.Invoke$2(this, $.get$GwenEventArgs_Empty());
+  },
+  ScrollBar$1: function($parent) {
+    var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15;
+    t1 = P.List_List(2, X.ScrollBarButton);
+    H.setRuntimeTypeInfo(t1, [X.ScrollBarButton]);
+    this.m_ScrollButton = t1;
+    t1 = this.m_ScrollButton;
+    t2 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+    t3 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+    t4 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+    t5 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+    t6 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+    t7 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+    t8 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+    t9 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t9, [X.GwenEventHandler]);
+    t10 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t10, [X.GwenEventHandler]);
+    t11 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t11, [X.GwenEventHandler]);
+    t12 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t12, [X.GwenEventHandler]);
+    t13 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t13, [X.GwenEventHandler]);
+    t14 = new P.Point(1, 1);
+    H.setRuntimeTypeInfo(t14, [J.JSInt]);
+    t15 = new P.Point(4096, 4096);
+    H.setRuntimeTypeInfo(t15, [J.JSInt]);
+    t15 = new X.ScrollBarButton(null, false, false, false, false, null, new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), new X.GwenEventHandlerList(t9, null, null), new X.GwenEventHandlerList(t10, null, null), new X.GwenEventHandlerList(t11, null, null), new X.GwenEventHandlerList(t12, null, null), new X.GwenEventHandlerList(t13, null, null), null, t14, t15, null, null, null);
+    t15.GwenControlBase$1(this);
+    t15.Label$1(this);
+    t15.Button$1(this);
+    t15._Direction = C.Pos_8;
+    t1[0] = t15;
+    t15 = this.m_ScrollButton;
+    t1 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+    t14 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t14, [X.GwenEventHandler]);
+    t13 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t13, [X.GwenEventHandler]);
+    t12 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t12, [X.GwenEventHandler]);
+    t11 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t11, [X.GwenEventHandler]);
+    t10 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t10, [X.GwenEventHandler]);
+    t9 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t9, [X.GwenEventHandler]);
+    t8 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+    t7 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+    t6 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+    t5 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+    t4 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+    t3 = new P.Point(1, 1);
+    H.setRuntimeTypeInfo(t3, [J.JSInt]);
+    t2 = new P.Point(4096, 4096);
+    H.setRuntimeTypeInfo(t2, [J.JSInt]);
+    t2 = new X.ScrollBarButton(null, false, false, false, false, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t14, null, null), new X.GwenEventHandlerList(t13, null, null), new X.GwenEventHandlerList(t12, null, null), new X.GwenEventHandlerList(t11, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t10, null, null), new X.GwenEventHandlerList(t9, null, null), new X.GwenEventHandlerList(t8, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t4, null, null), null, t3, t2, null, null, null);
+    t2.GwenControlBase$1(this);
+    t2.Label$1(this);
+    t2.Button$1(this);
+    t2._Direction = C.Pos_8;
+    t15[1] = t2;
+    t2 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+    t15 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t15, [X.GwenEventHandler]);
+    t3 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+    t4 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+    t5 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+    t6 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+    t7 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+    t8 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+    t9 = new P.Point(1, 1);
+    H.setRuntimeTypeInfo(t9, [J.JSInt]);
+    t10 = new P.Point(4096, 4096);
+    H.setRuntimeTypeInfo(t10, [J.JSInt]);
+    t10 = new X.ScrollBarBar(null, null, null, null, new X.GwenEventHandlerList(t2, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t15, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), null, t9, t10, null, null, null);
+    t10.GwenControlBase$1(this);
+    t10.Dragger$1(this);
+    t10.m_RestrictToParent = true;
+    t10._base = t10;
+    this._bar = t10;
+    this._depressed = false;
+    this._scrollAmount = 0;
+    this._contentSize = 1;
+    this._viewableContentSize = 1;
+    this._nudgeAmount = 20;
+    this.SetBounds$4(0, 0, 15, 15);
   }
 },
 
@@ -10081,6 +10298,307 @@ GwenSkinBase: {"": "Object;",
     J.set$fillStyle$x(t3._txContext, t2.get$StyleString());
     t3._color = t2;
     t1.drawLinedRect$1(control.m_Bounds);
+  }
+},
+
+GwenTable: {"": "GwenControlBase;_sizeToContents,_columnCount,_defaultRowHeight,_maxWidth,_columnWidth,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  set$ColumnCount: function(value) {
+    this.SetColumnCount$1(value);
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+  },
+  SetColumnCount$1: function(count) {
+    var t1;
+    if (this._columnCount === count)
+      return;
+    for (t1 = this.get$Children(), t1 = new H.ListIterator(t1, t1.length, 0, null); t1.moveNext$0();)
+      t1._current.set$ColumnCount(count);
+    this._columnCount = count;
+  },
+  AddRowRow$1: function(row) {
+    var t1, t2, t3;
+    row.set$Parent(this);
+    row.SetColumnCount$1(this._columnCount);
+    t1 = this._defaultRowHeight;
+    t2 = row.m_Bounds;
+    t3 = t2.width;
+    row.SetBounds$4(t2.left, t2.top, t3, t1);
+    row.set$Dock(C.Pos_8);
+  },
+  Layout$1: function(skin) {
+    var t1, even, row, i, t2;
+    X.GwenControlBase.prototype.Layout$1.call(this, skin);
+    for (t1 = this.get$Children(), t1 = new H.ListIterator(t1, t1.length, 0, null), even = false; t1.moveNext$0();) {
+      row = t1._current;
+      row.set$EvenRow(even);
+      even = !even;
+      for (i = 0; i < this._columnCount; ++i) {
+        t2 = this._columnWidth;
+        if (i >= t2.length)
+          throw H.ioore(t2, i);
+        row.SetColumnWidth$2(i, t2[i]);
+      }
+    }
+  },
+  PostLayout$1: function(skin) {
+    X.GwenControlBase.prototype.PostLayout$1.call(this, skin);
+    if (this._sizeToContents) {
+      this.DoSizeToContents$0();
+      this._sizeToContents = false;
+    }
+  },
+  SizeToContents$1: function(maxWidth) {
+    if (!J.$eq(this._maxWidth, maxWidth) || !this._sizeToContents) {
+      this._maxWidth = maxWidth;
+      this._sizeToContents = true;
+      this.m_NeedsLayout = true;
+      this.m_CacheTextureDirty = true;
+    }
+  },
+  DoSizeToContents$0: function() {
+    var t1, height, row, i, cell, t2, t3, width;
+    for (t1 = this.get$Children(), t1 = new H.ListIterator(t1, t1.length, 0, null), height = 0; t1.moveNext$0();) {
+      row = t1._current;
+      row.SizeToContents$0();
+      for (i = 0; i < this._columnCount; ++i) {
+        cell = row._GetColumn$1(i);
+        if (null != cell) {
+          t2 = i < this._columnCount - 1 || J.$eq(this._maxWidth, 0);
+          t3 = this._columnWidth;
+          if (t2) {
+            if (i >= t3.length)
+              throw H.ioore(t3, i);
+            t3[i] = P.max(t3[i], J.$add$ns(J.$add$ns(cell.m_Bounds.width, cell.m_Margin.Left), cell.m_Margin.Right));
+          } else {
+            t2 = J.$sub$n(this._maxWidth, 0);
+            if (i >= t3.length)
+              throw H.ioore(t3, i);
+            t3[i] = t2;
+          }
+        }
+      }
+      t2 = row.m_Bounds.height;
+      if (typeof t2 !== "number")
+        throw H.iae(t2);
+      height += t2;
+    }
+    for (t1 = this._columnCount, t2 = this._columnWidth, width = 0, i = 0; i < t1; ++i) {
+      if (i >= t2.length)
+        throw H.ioore(t2, i);
+      t3 = t2[i];
+      if (typeof t3 !== "number")
+        throw H.iae(t3);
+      width += t3;
+    }
+    t1 = this.m_Bounds;
+    this.SetBounds$4(t1.left, t1.top, width, height);
+  },
+  GwenTable$1: function($parent) {
+    var t1, i;
+    this._columnCount = 1;
+    this._defaultRowHeight = 22;
+    t1 = P.List_List(5, J.JSInt);
+    H.setRuntimeTypeInfo(t1, [J.JSInt]);
+    this._columnWidth = t1;
+    for (t1 = this._columnWidth, i = 0; i < 5; ++i) {
+      if (i >= t1.length)
+        throw H.ioore(t1, i);
+      t1[i] = 20;
+    }
+    this._sizeToContents = false;
+    this._maxWidth = 0;
+  },
+  static: {
+GwenTable$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t8, [J.JSInt]);
+  t9 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t9, [J.JSInt]);
+  t9 = new X.GwenTable(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
+  t9.GwenControlBase$1($parent);
+  t9.GwenTable$1($parent);
+  return t9;
+}}
+
+},
+
+TableRow: {"": "GwenControlBase;",
+  _GetColumn$1: function(index) {
+    var t1 = this._columns;
+    if (index < 0 || index >= t1.length)
+      throw H.ioore(t1, index);
+    return t1[index];
+  },
+  set$ColumnCount: function(value) {
+    this.SetColumnCount$1(value);
+  },
+  set$EvenRow: function(value) {
+    this._evenRow = value;
+  },
+  SetColumnCount$1: function(columnCount) {
+    var t1, i, t2;
+    if (columnCount === this._columnCount)
+      return;
+    if (columnCount >= 5)
+      throw H.wrapException(new P.ArgumentError("Invalid column count, " + columnCount));
+    for (t1 = columnCount - 1, i = 0; i < 5; ++i) {
+      if (i < columnCount) {
+        t2 = this._columns;
+        if (i >= t2.length)
+          throw H.ioore(t2, i);
+        if (null == t2[i]) {
+          t2[i] = X.Label$(this);
+          t2 = this._columns;
+          if (i >= t2.length)
+            throw H.ioore(t2, i);
+          t2[i].set$Padding($.get$GwenPadding_Three());
+          t2 = this._columns;
+          if (i >= t2.length)
+            throw H.ioore(t2, i);
+          t2[i].set$Margin(new X.GwenMargin(0, 0, 0, 2));
+          t2 = this._columns;
+          if (i >= t2.length)
+            throw H.ioore(t2, i);
+          t2 = t2[i];
+          t2._autoSizeToContents = false;
+          t2.m_NeedsLayout = true;
+          t2.m_CacheTextureDirty = true;
+          t2 = this._columns;
+          if (i === t1) {
+            if (i >= t2.length)
+              throw H.ioore(t2, i);
+            t2[i].set$Dock(C.Pos_128);
+          } else {
+            if (i >= t2.length)
+              throw H.ioore(t2, i);
+            t2[i].set$Dock(C.Pos_2);
+          }
+        }
+      } else {
+        t2 = this._columns;
+        if (i >= t2.length)
+          throw H.ioore(t2, i);
+        t2 = t2[i];
+        if (null != t2) {
+          this.RemoveChild$2(t2, true);
+          t2 = this._columns;
+          if (i >= t2.length)
+            throw H.ioore(t2, i);
+          t2[i] = null;
+        }
+      }
+      this._columnCount = columnCount;
+    }
+  },
+  SetColumnWidth$2: function(column, width) {
+    var t1, t2, t3;
+    t1 = this._columns;
+    if (column < 0 || column >= t1.length)
+      throw H.ioore(t1, column);
+    t1 = t1[column];
+    if (null == t1)
+      return;
+    if (J.$eq(t1.m_Bounds.width, width))
+      return;
+    t1 = this._columns;
+    if (column >= t1.length)
+      throw H.ioore(t1, column);
+    t1 = t1[column];
+    t2 = t1.m_Bounds;
+    t3 = t2.height;
+    t1.SetBounds$4(t2.left, t2.top, width, t3);
+  },
+  SetCellText$2: function(column, text) {
+    var t1 = this._columns;
+    if (column < 0 || column >= t1.length)
+      throw H.ioore(t1, column);
+    t1 = t1[column];
+    if (null == t1)
+      return;
+    t1.SetText$1(text);
+  },
+  OnRowSelected$0: function() {
+    this.Selected.Invoke$2(this, new X.ItemSelectedEventArgs(this));
+  },
+  SizeToContents$0: function() {
+    var width, height, i, t1, t2;
+    for (width = 0, height = 0, i = 0; i < this._columnCount; ++i) {
+      t1 = this._columns;
+      if (i >= t1.length)
+        throw H.ioore(t1, i);
+      t1 = t1[i];
+      if (null == t1)
+        continue;
+      t1 = t1.get$Children().length;
+      t2 = this._columns;
+      if (t1 > 1) {
+        if (i >= t2.length)
+          throw H.ioore(t2, i);
+        t2[i].SizeToChildren$0();
+      } else {
+        if (i >= t2.length)
+          throw H.ioore(t2, i);
+        t2[i].SizeToContents$0();
+      }
+      t1 = this._columns;
+      if (i >= t1.length)
+        throw H.ioore(t1, i);
+      t1 = t1[i];
+      t1 = J.$add$ns(t1.m_Bounds.width, t1.m_Margin.Left);
+      t2 = this._columns;
+      if (i >= t2.length)
+        throw H.ioore(t2, i);
+      t2 = J.$add$ns(t1, t2[i].m_Margin.Right);
+      if (typeof t2 !== "number")
+        throw H.iae(t2);
+      width += t2;
+      t2 = this._columns;
+      if (i >= t2.length)
+        throw H.ioore(t2, i);
+      t2 = t2[i];
+      t2 = J.$add$ns(t2.m_Bounds.height, t2.m_Margin.Top);
+      t1 = this._columns;
+      if (i >= t1.length)
+        throw H.ioore(t1, i);
+      height = P.max(height, J.$add$ns(t2, t1[i].m_Margin.Bottom));
+    }
+    t1 = this.m_Bounds;
+    this.SetBounds$4(t1.left, t1.top, width, height);
+  },
+  SetTextColor$1: function(color) {
+    var i, t1;
+    for (i = 0; i < this._columnCount; ++i) {
+      t1 = this._columns;
+      if (i >= t1.length)
+        throw H.ioore(t1, i);
+      t1 = t1[i];
+      if (null == t1)
+        continue;
+      t1._text.TextColor = color;
+    }
+  },
+  TableRow$1: function($parent) {
+    var t1 = P.List_List(5, X.Label);
+    H.setRuntimeTypeInfo(t1, [X.Label]);
+    this._columns = t1;
+    this._columnCount = 0;
+    this.m_KeyboardInputEnabled = false;
+    this._evenRow = false;
   }
 },
 
@@ -10578,7 +11096,7 @@ GwenTexturedSkinBase: {"": "GwenSkinBase;MySkinTextures,_Texture,DefaultFont,_re
     t1.drawFilledRect$1(t6);
     t6 = rect.width;
     t7 = J.getInterceptor$n(t6);
-    t8 = new P.Rectangle(J.$add$ns(J.$add$ns(t2.$add(rect1, 1), textStart), textWidth), t4.$add(t3, 1), J.$sub$n(J.$add$ns(t7.$sub(t6, textStart), textWidth), 2), 1);
+    t8 = new P.Rectangle(J.$add$ns(J.$add$ns(t2.$add(rect1, 1), textStart), textWidth), t4.$add(t3, 1), J.$sub$n(J.$sub$n(t7.$sub(t6, textStart), textWidth), 2), 1);
     H.setRuntimeTypeInfo(t8, [null]);
     t1.drawFilledRect$1(t8);
     t8 = rect.height;
@@ -10635,6 +11153,66 @@ GwenTexturedSkinBase: {"": "GwenSkinBase;MySkinTextures,_Texture,DefaultFont,_re
       t1.m_Window.Normal.Draw$2(t3, t2);
     else
       t1.m_Window.Inactive.Draw$2(t3, t2);
+  },
+  DrawScrollBar$3: function(control, horizontal, depressed) {
+    var t1, t2, t3;
+    t1 = this.MySkinTextures;
+    t2 = control.m_RenderBounds;
+    t3 = this._renderer;
+    if (horizontal)
+      t1.m_Scroller.TrackH.Draw$2(t3, t2);
+    else
+      t1.m_Scroller.TrackV.Draw$2(t3, t2);
+  },
+  DrawScrollBarBar$4: function(control, depressed, hovered, horizontal) {
+    if (horizontal !== true) {
+      if (control.m_Disabled === true) {
+        this.MySkinTextures.m_Scroller.ButtonV_Disabled.Draw$2(this._renderer, control.m_RenderBounds);
+        return;
+      }
+      if (depressed === true) {
+        this.MySkinTextures.m_Scroller.ButtonV_Down.Draw$2(this._renderer, control.m_RenderBounds);
+        return;
+      }
+      if (hovered) {
+        this.MySkinTextures.m_Scroller.ButtonV_Hover.Draw$2(this._renderer, control.m_RenderBounds);
+        return;
+      }
+      this.MySkinTextures.m_Scroller.ButtonV_Normal.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (control.m_Disabled === true) {
+      this.MySkinTextures.m_Scroller.ButtonH_Disabled.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (depressed === true) {
+      this.MySkinTextures.m_Scroller.ButtonH_Down.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (hovered) {
+      this.MySkinTextures.m_Scroller.ButtonH_Hover.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    this.MySkinTextures.m_Scroller.ButtonH_Normal.Draw$2(this._renderer, control.m_RenderBounds);
+  },
+  DrawListBoxLine$3: function(control, selected, even) {
+    if (selected === true) {
+      if (even === true) {
+        this.MySkinTextures.m_Input.m_ListBox.EvenLineSelected.Draw$2(this._renderer, control.m_RenderBounds);
+        return;
+      }
+      this.MySkinTextures.m_Input.m_ListBox.OddLineSelected.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if ($.InputHandler_HoveredControl === control) {
+      this.MySkinTextures.m_Input.m_ListBox.Hovered.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (even === true) {
+      this.MySkinTextures.m_Input.m_ListBox.EvenLine.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    this.MySkinTextures.m_Input.m_ListBox.OddLine.Draw$2(this._renderer, control.m_RenderBounds);
   },
   DrawKeyboardHighlight$3: function(control, r, offset) {
     var left, $top, t1, width, rect, t2, t3, t4, t5, t6, t7, skip, i, t8, t9, rect0, t10;
@@ -10710,6 +11288,26 @@ GwenTexturedSkinBase: {"": "GwenSkinBase;MySkinTextures,_Texture,DefaultFont,_re
       ++i;
     }
   },
+  DrawScrollButton$5: function(control, direction, depressed, hovered, disabled) {
+    var i = direction === C.Pos_8 ? 1 : 0;
+    if (direction === C.Pos_4)
+      i = 2;
+    if (direction === C.Pos_16)
+      i = 3;
+    if (disabled === true) {
+      this.MySkinTextures.m_Scroller.m_ScrollerButton.Disabled[i].Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (depressed) {
+      this.MySkinTextures.m_Scroller.m_ScrollerButton.Down[i].Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (hovered) {
+      this.MySkinTextures.m_Scroller.m_ScrollerButton.Hover[i].Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    this.MySkinTextures.m_Scroller.m_ScrollerButton.Normal[i].Draw$2(this._renderer, control.m_RenderBounds);
+  },
   DrawModalControl$1: function(control) {
     var rect, t1, t2, t3;
     if (control.m_DrawBackground !== true)
@@ -10759,6 +11357,224 @@ GwenTexturedSkinBase$: function(renderer, textureName) {
 
 },
 
+HorizontalScrollBar: {"": "ScrollBar;m_ScrollButton,_bar,_depressed,_scrollAmount,_contentSize,_viewableContentSize,_nudgeAmount,BarMoved,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  get$IsHorizontal: function() {
+    return true;
+  },
+  Layout$1: function(skin) {
+    var t1, t2, t3, t4, barWidth;
+    X.GwenControlBase.prototype.Layout$1.call(this, skin);
+    t1 = this.m_ScrollButton[0];
+    t2 = this.m_Bounds.height;
+    t3 = t1.m_Bounds;
+    t4 = t3.height;
+    t1.SetBounds$4(t3.left, t3.top, t2, t4);
+    this.m_ScrollButton[0].set$Dock(C.Pos_2);
+    t4 = this.m_ScrollButton[1];
+    t2 = this.m_Bounds.height;
+    t3 = t4.m_Bounds;
+    t1 = t3.height;
+    t4.SetBounds$4(t3.left, t3.top, t2, t1);
+    this.m_ScrollButton[1].set$Dock(C.Pos_4);
+    t1 = this._bar;
+    t2 = this.m_Bounds.height;
+    t3 = t1.m_Bounds;
+    t4 = t3.width;
+    t1.SetBounds$4(t3.left, t3.top, t4, t2);
+    t2 = this._bar;
+    t4 = this.m_Bounds.height;
+    t2.set$Padding(new X.GwenPadding(0, 0, t4, t4));
+    t1 = this._contentSize;
+    if (typeof t1 !== "number")
+      throw t1.$gt();
+    if (t1 > 0) {
+      t2 = this._viewableContentSize;
+      if (typeof t2 !== "number")
+        throw t2.$div();
+      t3 = this.m_Bounds;
+      t3 = J.$sub$n(t3.width, J.$mul$n(t3.height, 2));
+      if (typeof t3 !== "number")
+        throw H.iae(t3);
+      barWidth = t2 / t1 * t3;
+    } else
+      barWidth = 0;
+    t1 = J.$mul$n(this.m_Bounds.height, 0.5);
+    if (typeof t1 !== "number")
+      throw H.iae(t1);
+    if (barWidth < t1)
+      barWidth = J.toDouble$0$n(J.$tdiv$n(this.m_Bounds.height, 2));
+    t1 = this._bar;
+    t2 = C.JSNumber_methods.toInt$0(barWidth);
+    t3 = t1.m_Bounds;
+    t4 = t3.height;
+    t1.SetBounds$4(t3.left, t3.top, t2, t4);
+    t4 = this._bar;
+    t2 = this.m_Bounds;
+    t4.set$IsHidden(J.$le$n(J.$sub$n(t2.width, J.$mul$n(t2.height, 2)), barWidth));
+    if (this._bar._held !== true)
+      this.SetScrollAmount$2(this._scrollAmount, true);
+  },
+  NudgeLeft$2: function(control, args) {
+    var t1, t2;
+    if (this.m_Disabled !== true) {
+      t1 = this._scrollAmount;
+      t2 = this.get$NudgeAmount();
+      if (typeof t1 !== "number")
+        throw t1.$sub();
+      this.SetScrollAmount$2(t1 - t2, true);
+    }
+  },
+  NudgeRight$2: function(control, args) {
+    var t1, t2;
+    if (this.m_Disabled !== true) {
+      t1 = this._scrollAmount;
+      t2 = this.get$NudgeAmount();
+      if (typeof t1 !== "number")
+        throw t1.$add();
+      this.SetScrollAmount$2(t1 + t2, true);
+    }
+  },
+  get$NudgeAmount: function() {
+    var t1, t2;
+    if (this._depressed === true) {
+      t1 = this._viewableContentSize;
+      t2 = this._contentSize;
+      if (typeof t1 !== "number")
+        throw t1.$div();
+      if (typeof t2 !== "number")
+        throw H.iae(t2);
+      return t1 / t2;
+    } else
+      return X.ScrollBar.prototype.get$NudgeAmount.call(this);
+  },
+  OnMouseClickedLeft$3: function(x, y, down) {
+    var t1, t2, t3;
+    X.ScrollBar.prototype.OnMouseClickedLeft$3.call(this, x, y, down);
+    if (down) {
+      this._depressed = true;
+      $.InputHandler_MouseFocus = this;
+    } else {
+      t1 = new P.Point(x, y);
+      H.setRuntimeTypeInfo(t1, [null]);
+      t1 = this.CanvasPosToLocal$1(t1).x;
+      t2 = this._bar.m_Bounds;
+      t3 = t2.left;
+      if (typeof t1 !== "number")
+        throw t1.$lt();
+      if (typeof t3 !== "number")
+        throw H.iae(t3);
+      if (t1 < t3) {
+        $.get$GwenEventArgs_Empty();
+        if (this.m_Disabled !== true) {
+          t1 = this._scrollAmount;
+          t2 = this.get$NudgeAmount();
+          if (typeof t1 !== "number")
+            throw t1.$sub();
+          this.SetScrollAmount$2(t1 - t2, true);
+        }
+      } else {
+        t2 = t2.width;
+        if (typeof t2 !== "number")
+          throw H.iae(t2);
+        if (t1 > t3 + t2) {
+          $.get$GwenEventArgs_Empty();
+          if (this.m_Disabled !== true) {
+            t1 = this._scrollAmount;
+            t2 = this.get$NudgeAmount();
+            if (typeof t1 !== "number")
+              throw t1.$add();
+            this.SetScrollAmount$2(t1 + t2, true);
+          }
+        }
+      }
+      this._depressed = false;
+      $.InputHandler_MouseFocus = null;
+    }
+  },
+  CalculateScrolledAmount$0: function() {
+    return J.$div$n(J.$sub$n(this._bar.m_Bounds.left, this.m_Bounds.height), J.$sub$n(J.$sub$n(this.m_Bounds.width, this._bar.m_Bounds.width), J.$mul$n(this.m_Bounds.height, 2)));
+  },
+  SetScrollAmount$2: function(value, forceUpdate) {
+    var t1, t2, newX;
+    value = X.GwenUtil_Clamp(value, 0, 1);
+    if (!X.ScrollBar.prototype.SetScrollAmount$2.call(this, value, forceUpdate))
+      return false;
+    if (forceUpdate) {
+      t1 = this.m_Bounds;
+      t2 = t1.height;
+      t1 = J.$sub$n(J.$sub$n(t1.width, this._bar.m_Bounds.width), J.$mul$n(this.m_Bounds.height, 2));
+      if (typeof t1 !== "number")
+        throw H.iae(t1);
+      newX = J.toInt$0$n(J.$add$ns(t2, value * t1));
+      t1 = this._bar;
+      t1.MoveTo$2(newX, t1.m_Bounds.top);
+    }
+    return true;
+  },
+  OnBarMoved$2: function(control, args) {
+    var t1;
+    if (this._bar._held === true) {
+      this.SetScrollAmount$2(this.CalculateScrolledAmount$0(), false);
+      X.ScrollBar.prototype.OnBarMoved$2.call(this, control, $.get$GwenEventArgs_Empty());
+    } else {
+      t1 = this.m_Parent;
+      if (t1 != null) {
+        t1.m_NeedsLayout = true;
+        t1.m_CacheTextureDirty = true;
+      }
+    }
+  },
+  HorizontalScrollBar$1: function($parent) {
+    var t1;
+    this._bar._horizontal = true;
+    this.m_ScrollButton[0]._Direction = C.Pos_2;
+    t1 = this.m_ScrollButton[0].Clicked;
+    t1.add$1(t1, new X.GwenScrollBarEventHandler(2, this));
+    this.m_ScrollButton[1]._Direction = C.Pos_4;
+    t1 = this.m_ScrollButton[1].Clicked;
+    t1.add$1(t1, new X.GwenScrollBarEventHandler(3, this));
+    t1 = this._bar.Dragged;
+    t1.add$1(t1, new X.GwenScrollBarEventHandler(4, this));
+  },
+  $isHorizontalScrollBar: true,
+  static: {
+HorizontalScrollBar$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+  t9 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t9, [J.JSInt]);
+  t10 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t10, [J.JSInt]);
+  t10 = new X.HorizontalScrollBar(null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), null, t9, t10, null, null, null);
+  t10.GwenControlBase$1($parent);
+  t10.ScrollBar$1($parent);
+  t10.HorizontalScrollBar$1($parent);
+  return t10;
+}}
+
+},
+
+ItemSelectedEventArgs: {"": "GwenEventArgs;_selectedItem",
+  get$SelectedItem: function() {
+    return this._selectedItem;
+  }
+},
+
 KeyData: {"": "Object;KeyState,NextRepeat,Target,LeftMouseDown,RightMouseDown",
   KeyData$0: function() {
     this.Target = null;
@@ -10790,6 +11606,9 @@ MouseEventHandlerAddedHandler: {"": "GwenEventHandler;_label",
 Label: {"": "GwenControlBase;_text,_align,_textPadding,_autoSizeToContents,_mouseEventHandlerAddedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
   get$Text: function() {
     return this._text._string;
+  },
+  set$Text: function(value) {
+    this.SetText$1(value);
   },
   get$TextPadding: function() {
     if (null == this._textPadding)
@@ -10852,19 +11671,17 @@ Label: {"": "GwenControlBase;_text,_align,_textPadding,_autoSizeToContents,_mous
     return t2;
   },
   SizeToContents$0: function() {
-    var t1, t2, t3, t4, t5, t6;
+    var t1, t2, t3, t4;
     t1 = this._text;
-    t2 = this.get$TextPadding().Left;
-    t3 = this.m_Padding.Left;
-    t4 = this.get$TextPadding().Top;
-    t5 = this.m_Padding.Top;
-    t6 = t1.m_Bounds;
-    t1.SetBounds$4(t2 + t3, t4 + t5, t6.width, t6.height);
+    t2 = J.$add$ns(this.get$TextPadding().Left, this.m_Padding.Left);
+    t3 = J.$add$ns(this.get$TextPadding().Top, this.m_Padding.Top);
+    t4 = t1.m_Bounds;
+    t1.SetBounds$4(t2, t3, t4.width, t4.height);
     this._text.SizeToContents$0();
-    t6 = J.$add$ns(J.$add$ns(J.$add$ns(J.$add$ns(this._text.m_Bounds.width, this.m_Padding.Left), this.m_Padding.Right), this.get$TextPadding().Left), this.get$TextPadding().Right);
-    t5 = J.$add$ns(J.$add$ns(J.$add$ns(J.$add$ns(this._text.m_Bounds.height, this.m_Padding.Top), this.m_Padding.Bottom), this.get$TextPadding().Top), this.get$TextPadding().Bottom);
-    t4 = this.m_Bounds;
-    this.SetBounds$4(t4.left, t4.top, t6, t5);
+    t4 = J.$add$ns(J.$add$ns(J.$add$ns(J.$add$ns(this._text.m_Bounds.width, this.m_Padding.Left), this.m_Padding.Right), this.get$TextPadding().Left), this.get$TextPadding().Right);
+    t3 = J.$add$ns(J.$add$ns(J.$add$ns(J.$add$ns(this._text.m_Bounds.height, this.m_Padding.Top), this.m_Padding.Bottom), this.get$TextPadding().Top), this.get$TextPadding().Bottom);
+    t2 = this.m_Bounds;
+    this.SetBounds$4(t2.left, t2.top, t4, t3);
     t1 = this.m_Parent;
     if (t1 != null) {
       t1.m_NeedsLayout = true;
@@ -10872,32 +11689,20 @@ Label: {"": "GwenControlBase;_text,_align,_textPadding,_autoSizeToContents,_mous
     }
   },
   Layout$1: function(skin) {
-    var align, x, y, t1, t2, t3, t4;
+    var align, x, y, t1, t2;
     X.GwenControlBase.prototype.Layout$1.call(this, skin);
     align = this._align;
     if (this._autoSizeToContents === true)
       this.SizeToContents$0();
-    x = this.get$TextPadding().Left + this.m_Padding.Left;
-    y = this.get$TextPadding().Top + this.m_Padding.Top;
+    x = J.$add$ns(this.get$TextPadding().Left, this.m_Padding.Left);
+    y = J.$add$ns(this.get$TextPadding().Top, this.m_Padding.Top);
     t1 = align.value;
     if (0 !== (t1 & C.Pos_4.value) >>> 0)
       x = J.$sub$n(J.$sub$n(J.$sub$n(this.m_Bounds.width, this._text.m_Bounds.width), this.get$TextPadding().Right), this.m_Padding.Right);
-    if (0 !== (t1 & C.Pos_64.value) >>> 0) {
-      t2 = this.get$TextPadding().Left;
-      t3 = this.m_Padding.Left;
-      t4 = J.$mul$n(J.$sub$n(J.$sub$n(J.$sub$n(J.$sub$n(J.$sub$n(this.m_Bounds.width, this._text.m_Bounds.width), this.get$TextPadding().Left), this.m_Padding.Left), this.get$TextPadding().Right), this.m_Padding.Right), 0.5);
-      if (typeof t4 !== "number")
-        throw H.iae(t4);
-      x = C.JSNumber_methods.toInt$0(C.JSNumber_methods.roundToDouble$0(t2 + t3 + t4));
-    }
-    if (0 !== (t1 & C.Pos_32.value) >>> 0) {
-      t2 = this.get$TextPadding().Top;
-      t3 = this.m_Padding.Top;
-      t4 = J.$mul$n(J.$sub$n(this.m_Bounds.height, this._text.m_Bounds.height), 0.5);
-      if (typeof t4 !== "number")
-        throw H.iae(t4);
-      y = C.JSNumber_methods.toInt$0(C.JSNumber_methods.roundToDouble$0(t2 + t3 + t4 - this.get$TextPadding().Bottom - this.m_Padding.Bottom));
-    }
+    if (0 !== (t1 & C.Pos_64.value) >>> 0)
+      x = J.round$0$n(J.$add$ns(J.$add$ns(this.get$TextPadding().Left, this.m_Padding.Left), J.$mul$n(J.$sub$n(J.$sub$n(J.$sub$n(J.$sub$n(J.$sub$n(this.m_Bounds.width, this._text.m_Bounds.width), this.get$TextPadding().Left), this.m_Padding.Left), this.get$TextPadding().Right), this.m_Padding.Right), 0.5)));
+    if (0 !== (t1 & C.Pos_32.value) >>> 0)
+      y = J.round$0$n(J.$sub$n(J.$sub$n(J.$add$ns(J.$add$ns(this.get$TextPadding().Top, this.m_Padding.Top), J.$mul$n(J.$sub$n(this.m_Bounds.height, this._text.m_Bounds.height), 0.5)), this.get$TextPadding().Bottom), this.m_Padding.Bottom));
     if (0 !== (t1 & C.Pos_16.value) >>> 0)
       y = J.$sub$n(J.$sub$n(J.$sub$n(this.m_Bounds.height, this._text.m_Bounds.height), this.get$TextPadding().Bottom), this.m_Padding.Bottom);
     t1 = this._text;
@@ -11146,6 +11951,7 @@ LabeledRadioButton: {"": "GwenControlBase;_radioButton,_label,m_Disposed,m_Paren
     t1.m_NeedsLayout = true;
     t1.m_CacheTextureDirty = true;
   },
+  $isLabeledRadioButton: true,
   static: {
 LabeledRadioButton$: function($parent) {
   var t1, t2, t3, t4, t5, t6, t7, t8, t9;
@@ -11173,6 +11979,199 @@ LabeledRadioButton$: function($parent) {
   return t9;
 }}
 
+},
+
+GwenListBoxEventHandler: {"": "GwenEventHandler;_listBox,_code",
+  Invoke$2: function(control, args) {
+    switch (this._code) {
+      case 0:
+        this._listBox.TableResized$2(control, args);
+        break;
+      case 1:
+        this._listBox.OnRowSelected$2(control, args);
+        break;
+      default:
+        break;
+    }
+  },
+  static: {
+"": "GwenListBoxEventHandler_TABLE_RESIZED,GwenListBoxEventHandler_ROW_SELECTED",
+}
+
+},
+
+ListBox: {"": "ScrollControl;_gwendart$_table,_selectedRows,_multiSelect,_sizeToContents,_isToggle,_oldDock,RowSelected,RowUnselected,_canScrollH,_canScrollV,_autoHideBars,_verticalScrollBar,_horizontalScrollBar,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  set$ColumnCount: function(value) {
+    var t1 = this._gwendart$_table;
+    t1.SetColumnCount$1(value);
+    t1.m_NeedsLayout = true;
+    t1.m_CacheTextureDirty = true;
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+  },
+  SelectRowByRow$2: function(control, clearOthers) {
+    if (this._multiSelect !== true || clearOthers)
+      this.UnselectAll$0();
+    control.set$IsSelected(true);
+    this._selectedRows.push(control);
+    this.RowSelected.Invoke$2(this, new X.ItemSelectedEventArgs(control));
+  },
+  AddRowUserData$3: function(label, $name, UserData) {
+    var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, row;
+    t1 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+    t2 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+    t3 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+    t4 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+    t5 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+    t6 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+    t7 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+    t8 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+    t9 = new P.Point(1, 1);
+    H.setRuntimeTypeInfo(t9, [J.JSInt]);
+    t10 = new P.Point(4096, 4096);
+    H.setRuntimeTypeInfo(t10, [J.JSInt]);
+    row = new X.ListBoxRow(null, null, null, null, new X.GwenEventHandlerList(t1, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), null, t9, t10, null, null, null);
+    row.GwenControlBase$1(this);
+    row.TableRow$1(this);
+    row.m_MouseInputEnabled = true;
+    row.set$IsSelected(false);
+    this._gwendart$_table.AddRowRow$1(row);
+    row.SetCellText$2(0, label);
+    row.m_Name = $name;
+    row.m_UserData = UserData;
+    t10 = row.Selected;
+    t10.add$1(t10, new X.GwenListBoxEventHandler(this, 1));
+    this._gwendart$_table.SizeToContents$1(this.m_Bounds.width);
+    return row;
+  },
+  AddRowUserData$2: function(label, name) {
+    return this.AddRowUserData$3(label, name, null);
+  },
+  Render$1: function(skin) {
+    skin.MySkinTextures.m_Input.m_ListBox.Background.Draw$2(skin._renderer, this.m_RenderBounds);
+  },
+  UnselectAll$0: function() {
+    var t1, t2, row;
+    for (t1 = this._selectedRows, t1 = new H.ListIterator(t1, t1.length, 0, null), t2 = this.RowUnselected; t1.moveNext$0();) {
+      row = t1._current;
+      row.set$IsSelected(false);
+      t2.Invoke$2(this, new X.ItemSelectedEventArgs(row));
+    }
+    C.JSArray_methods.set$length(this._selectedRows, 0);
+  },
+  UnselectRow$1: function(row) {
+    row.set$IsSelected(false);
+    C.JSArray_methods.remove$1(this._selectedRows, row);
+    this.RowUnselected.Invoke$2(this, new X.ItemSelectedEventArgs(row));
+  },
+  OnRowSelected$2: function(control, args) {
+    var row = H.interceptedTypeCast(args.get$SelectedItem(), "$isListBoxRow");
+    if (row == null)
+      return;
+    if (row._selected === true) {
+      if (this._isToggle === true)
+        this.UnselectRow$1(row);
+    } else
+      this.SelectRowByRow$2(row, false);
+  },
+  SizeToContents$0: function() {
+    this._sizeToContents = true;
+    this._oldDock = this._gwendart$_table.m_Dock;
+    this._gwendart$_table.set$Dock(C.Pos_0);
+    this._gwendart$_table.SizeToContents$1(0);
+  },
+  TableResized$2: function(control, args) {
+    var t1, t2, t3;
+    if (this._sizeToContents === true)
+      if (!J.$eq(this._gwendart$_table.m_Bounds.width, this.m_Bounds.width) || !J.$eq(this._gwendart$_table.m_Bounds.height, this.m_Bounds.height)) {
+        t1 = this._gwendart$_table.m_Bounds;
+        t2 = t1.width;
+        t1 = t1.height;
+        t3 = this.m_Bounds;
+        this.SetBounds$4(t3.left, t3.top, t2, t1);
+        this._sizeToContents = false;
+        this._gwendart$_table.set$Dock(this._oldDock);
+        this.m_NeedsLayout = true;
+        this.m_CacheTextureDirty = true;
+      }
+  },
+  ListBox$1: function($parent) {
+    var t1 = P.List_List(null, X.ListBoxRow);
+    H.setRuntimeTypeInfo(t1, [X.ListBoxRow]);
+    this._selectedRows = t1;
+    this.m_MouseInputEnabled = true;
+    this.EnableScroll$2(false, true);
+    this._autoHideBars = true;
+    this.set$Margin($.get$GwenMargin_One());
+    this._gwendart$_table = X.GwenTable$(this);
+    this._gwendart$_table.set$Dock(C.Pos_128);
+    t1 = this._gwendart$_table;
+    t1.SetColumnCount$1(1);
+    t1.m_NeedsLayout = true;
+    t1.m_CacheTextureDirty = true;
+    t1 = this._gwendart$_table.BoundsChanged;
+    t1.add$1(t1, new X.GwenListBoxEventHandler(this, 0));
+    this._multiSelect = false;
+    this._isToggle = false;
+    this._sizeToContents = false;
+    this._oldDock = C.Pos_128;
+  },
+  static: {
+ListBox$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+  t9 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t9, [X.GwenEventHandler]);
+  t10 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t10, [J.JSInt]);
+  t11 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t11, [J.JSInt]);
+  t11 = new X.ListBox(null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), new X.GwenEventHandlerList(t9, null, null), null, t10, t11, null, null, null);
+  t11.GwenControlBase$1($parent);
+  t11.ScrollControl$1($parent);
+  t11.ListBox$1($parent);
+  return t11;
+}}
+
+},
+
+ListBoxRow: {"": "TableRow;_selected,_columnCount,_evenRow,_columns,Selected,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  set$IsSelected: function(value) {
+    this._selected = value;
+    this.SetTextColor$1(value ? X.Color__getDefaultColor(16777215) : X.Color__getDefaultColor(0));
+  },
+  Render$1: function(skin) {
+    skin.DrawListBoxLine$3(this, this._selected, this._evenRow);
+  },
+  OnMouseClickedLeft$3: function(x, y, down) {
+    X.GwenControlBase.prototype.OnMouseClickedLeft$3.call(this, x, y, down);
+    if (down)
+      this.OnRowSelected$0();
+  },
+  $isListBoxRow: true
 },
 
 Modal: {"": "GwenControlBase;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
@@ -11217,13 +12216,13 @@ Modal$: function($parent) {
 
 },
 
-GwenPadding: {"": "Object;Top,Bottom,Left,Right", static: {
+GwenPadding: {"": "Object;Top,Bottom<,Left,Right<", static: {
 "": "GwenPadding_Zero,GwenPadding_One,GwenPadding_Two,GwenPadding_Three,GwenPadding_Four,GwenPadding_Five",
 }
 },
 
 Pos: {"": "Object;value>", static: {
-"": "Pos_None,Pos_Left,Pos_Right,Pos_Top,Pos_Bottom,Pos_CenterV,Pos_CenterH,Pos_Fill,Pos_Center",
+"": "Pos_None,Pos_Left,Pos_Right<,Pos_Top,Pos_Bottom,Pos_CenterV,Pos_CenterH,Pos_Fill,Pos_Center",
 }
 },
 
@@ -11241,6 +12240,7 @@ RadioButton: {"": "CheckBox;_checked,Checked,UnChecked,CheckChanged,_depressed,I
     this.m_Tabable = false;
     this.IsToggle = true;
   },
+  $isRadioButton: true,
   static: {
 RadioButton$: function($parent) {
   var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17;
@@ -11287,6 +12287,86 @@ RadioButton$: function($parent) {
   t17.IsToggle = true;
   t17.RadioButton$1($parent);
   return t17;
+}}
+
+},
+
+GwenRadioButtonGroupClickEventHandler: {"": "GwenEventHandler;_checkbox",
+  Invoke$2: function(control, args) {
+    this._checkbox.OnRadioClicked$2(control, args);
+  }
+},
+
+RadioButtonGroup: {"": "GroupBox;_selected,SelectionChanged,_text,_align,_textPadding,_autoSizeToContents,_mouseEventHandlerAddedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  AddOption$2: function(text, optionName) {
+    var lrb, t1;
+    lrb = X.LabeledRadioButton$(this);
+    lrb.m_Name = optionName;
+    lrb._label.SetText$1(text);
+    t1 = lrb._radioButton.Checked;
+    t1.add$1(t1, new X.GwenRadioButtonGroupClickEventHandler(this));
+    lrb.set$Dock(C.Pos_8);
+    lrb.set$Margin(new X.GwenMargin(0, 1, 0, 0));
+    lrb.m_KeyboardInputEnabled = false;
+    lrb.m_Tabable = true;
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+    return lrb;
+  },
+  OnRadioClicked$2: function(control, args) {
+    var t1, ctrl, t2;
+    if (!!control.$isRadioButton) {
+      for (t1 = this.get$Children(), t1 = new H.ListIterator(t1, t1.length, 0, null); t1.moveNext$0();) {
+        ctrl = t1._current;
+        t2 = J.getInterceptor(ctrl);
+        if (typeof ctrl === "object" && ctrl !== null && !!t2.$isLabeledRadioButton) {
+          t2 = ctrl._radioButton;
+          if (t2 === control)
+            this._selected = ctrl;
+          else
+            t2.set$IsChecked(false);
+        }
+      }
+      this.SelectionChanged.Invoke$2(this, new X.ItemSelectedEventArgs(this._selected));
+    }
+  },
+  RadioButtonGroup$1: function($parent) {
+    this._autoSizeToContents = true;
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+    this.m_Tabable = false;
+    this.m_KeyboardInputEnabled = true;
+    X.Label.prototype.set$Text.call(this, "");
+  },
+  static: {
+RadioButtonGroup$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+  t9 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t9, [J.JSInt]);
+  t10 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t10, [J.JSInt]);
+  t10 = new X.RadioButtonGroup(null, new X.GwenEventHandlerList(t1, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), null, t9, t10, null, null, null);
+  t10.GwenControlBase$1($parent);
+  t10.Label$1($parent);
+  t10.GroupBox$1($parent);
+  t10.RadioButtonGroup$1($parent);
+  return t10;
 }}
 
 },
@@ -11557,6 +12637,221 @@ Resizer$: function($parent) {
   t11.Dragger$1($parent);
   t11.Resizer$1($parent);
   return t11;
+}}
+
+},
+
+ScrollBarBar: {"": "Dragger;_horizontal,_held,_holdPos,_base,Dragged,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  Render$1: function(skin) {
+    skin.DrawScrollBarBar$4(this, this._held, $.InputHandler_HoveredControl === this, this._horizontal);
+  },
+  OnMouseMoved$4: function(x, y, dx, dy) {
+    var t1;
+    X.Dragger.prototype.OnMouseMoved$4.call(this, x, y, dx, dy);
+    if (this._held !== true)
+      return;
+    t1 = this.m_Parent;
+    if (t1 != null) {
+      t1.m_NeedsLayout = true;
+      t1.m_CacheTextureDirty = true;
+    }
+  }
+},
+
+ScrollBarButton: {"": "Button;_Direction,_depressed,IsToggle,_toggleStatus,_centerImage,_image,Pressed,Released,Toggled,ToggledOn,ToggledOff,_text,_align,_textPadding,_autoSizeToContents,_mouseEventHandlerAddedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  Render$1: function(skin) {
+    skin.DrawScrollButton$5(this, this._Direction, this._depressed, $.InputHandler_HoveredControl === this, this.m_Disabled);
+  }
+},
+
+GwenScrollControlEventHandler: {"": "GwenEventHandler;_scrollControl,_code",
+  Invoke$2: function(control, args) {
+    var t1;
+    switch (this._code) {
+      case 0:
+        t1 = this._scrollControl;
+        t1.m_NeedsLayout = true;
+        t1.m_CacheTextureDirty = true;
+        break;
+      case 1:
+        t1 = this._scrollControl;
+        t1.m_NeedsLayout = true;
+        t1.m_CacheTextureDirty = true;
+        break;
+      default:
+        break;
+    }
+  },
+  static: {
+"": "GwenScrollControlEventHandler_VBAR_MOVED,GwenScrollControlEventHandler_HBAR_MOVED",
+}
+
+},
+
+ScrollControl: {"": "GwenControlBase;_canScrollH,_canScrollV,_autoHideBars,_verticalScrollBar,_horizontalScrollBar,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  set$HScrollRequired: function(value) {
+    var t1 = this._horizontalScrollBar;
+    if (value) {
+      t1.SetScrollAmount$2(0, true);
+      this._horizontalScrollBar.m_Disabled = true;
+      if (this._autoHideBars === true)
+        this._horizontalScrollBar.set$IsHidden(true);
+    } else {
+      t1.set$IsHidden(false);
+      this._horizontalScrollBar.m_Disabled = false;
+    }
+  },
+  set$VScrollRequired: function(value) {
+    var t1 = this._verticalScrollBar;
+    if (value) {
+      t1.SetScrollAmount$2(0, true);
+      this._verticalScrollBar.m_Disabled = true;
+      if (this._autoHideBars === true)
+        this._verticalScrollBar.set$IsHidden(true);
+    } else {
+      t1.set$IsHidden(false);
+      this._verticalScrollBar.m_Disabled = false;
+    }
+  },
+  EnableScroll$2: function(horizontal, vertical) {
+    this._canScrollV = vertical;
+    this._canScrollH = horizontal;
+    this._verticalScrollBar.set$IsHidden(this._canScrollV !== true);
+    this._horizontalScrollBar.set$IsHidden(this._canScrollH !== true);
+  },
+  OnChildBoundsChanged$2: function(oldChildBounds, child) {
+    this.UpdateScrollBars$0();
+  },
+  Layout$1: function(skin) {
+    this.UpdateScrollBars$0();
+    X.GwenControlBase.prototype.Layout$1.call(this, skin);
+  },
+  Render$1: function(skin) {
+  },
+  UpdateScrollBars$0: function() {
+    var t1, childrenWidth, childrenHeight, child, t2, t3, t4, wPercent, hPercent, newInnerPanelPosY, newInnerPanelPosX;
+    if (this.m_InnerPanel == null)
+      return;
+    for (t1 = this.get$Children(), t1 = new H.ListIterator(t1, t1.length, 0, null), childrenWidth = 0, childrenHeight = 0; t1.moveNext$0();) {
+      child = t1._current;
+      if (J.$gt$n(child.get$Right(), childrenWidth))
+        childrenWidth = child.get$Right();
+      if (J.$gt$n(child.get$Bottom(), childrenHeight))
+        childrenHeight = child.get$Bottom();
+    }
+    t1 = this._canScrollH;
+    t2 = this.m_InnerPanel;
+    t3 = this.m_Bounds;
+    if (t1 === true) {
+      t1 = P.max(t3.width, childrenWidth);
+      t3 = P.max(this.m_Bounds.height, childrenHeight);
+      t4 = t2.m_Bounds;
+      t2.SetBounds$4(t4.left, t4.top, t1, t3);
+    } else {
+      t1 = t3.width;
+      t3 = this._verticalScrollBar;
+      t1 = J.$sub$n(t1, t3.m_Hidden === true ? 0 : t3.m_Bounds.width);
+      t3 = P.max(this.m_Bounds.height, childrenHeight);
+      t4 = t2.m_Bounds;
+      t2.SetBounds$4(t4.left, t4.top, t1, t3);
+    }
+    t1 = this.m_Bounds.width;
+    t2 = this._verticalScrollBar;
+    wPercent = J.$div$n(t1, J.$add$ns(childrenWidth, t2.m_Hidden === true ? 0 : t2.m_Bounds.width));
+    t1 = this.m_Bounds.height;
+    t2 = this._horizontalScrollBar;
+    hPercent = J.$div$n(t1, J.$add$ns(childrenHeight, t2.m_Hidden === true ? 0 : t2.m_Bounds.height));
+    if (this._canScrollV === true) {
+      if (typeof hPercent !== "number")
+        throw hPercent.$ge();
+      this.set$VScrollRequired(hPercent >= 1);
+    } else
+      this._verticalScrollBar.set$IsHidden(true);
+    if (this._canScrollH === true) {
+      if (typeof wPercent !== "number")
+        throw wPercent.$ge();
+      this.set$HScrollRequired(wPercent >= 1);
+    } else
+      this._horizontalScrollBar.set$IsHidden(true);
+    this._verticalScrollBar.set$ContentSize(J.toDouble$0$n(this.m_InnerPanel.m_Bounds.height));
+    t1 = this._verticalScrollBar;
+    t2 = this.m_Bounds.height;
+    t3 = this._horizontalScrollBar;
+    t1.set$ViewableContentSize(J.toDouble$0$n(J.$sub$n(t2, t3.m_Hidden === true ? 0 : t3.m_Bounds.height)));
+    this._horizontalScrollBar.set$ContentSize(J.toDouble$0$n(this.m_InnerPanel.m_Bounds.width));
+    t1 = this._horizontalScrollBar;
+    t2 = this.m_Bounds.width;
+    t3 = this._verticalScrollBar;
+    t1.set$ViewableContentSize(J.toDouble$0$n(J.$sub$n(t2, t3.m_Hidden === true ? 0 : t3.m_Bounds.width)));
+    if (this._canScrollV === true && this._verticalScrollBar.m_Hidden !== true) {
+      t1 = J.$sub$n(this.m_InnerPanel.m_Bounds.height, this.m_Bounds.height);
+      t2 = this._horizontalScrollBar;
+      newInnerPanelPosY = J.toInt$0$n(J.$mul$n(J.$negate$n(J.$add$ns(t1, t2.m_Hidden === true ? 0 : t2.m_Bounds.height)), this._verticalScrollBar._scrollAmount));
+    } else
+      newInnerPanelPosY = 0;
+    if (this._canScrollH === true && this._horizontalScrollBar.m_Hidden !== true) {
+      t1 = J.$sub$n(this.m_InnerPanel.m_Bounds.width, this.m_Bounds.width);
+      t2 = this._verticalScrollBar;
+      newInnerPanelPosX = J.toInt$0$n(J.$mul$n(J.$negate$n(J.$add$ns(t1, t2.m_Hidden === true ? 0 : t2.m_Bounds.width)), this._horizontalScrollBar._scrollAmount));
+    } else
+      newInnerPanelPosX = 0;
+    t1 = this.m_InnerPanel;
+    t2 = t1.m_Bounds;
+    t1.SetBounds$4(newInnerPanelPosX, newInnerPanelPosY, t2.width, t2.height);
+  },
+  ScrollControl$1: function($parent) {
+    var t1, t2;
+    this.m_MouseInputEnabled = false;
+    this._verticalScrollBar = X.VerticalScrollBar$(this);
+    this._verticalScrollBar.set$Dock(C.Pos_4);
+    t1 = this._verticalScrollBar.BarMoved;
+    t1.add$1(t1, new X.GwenScrollControlEventHandler(this, 0));
+    this._canScrollV = true;
+    t1 = this._verticalScrollBar;
+    t1.toString;
+    X.ScrollBar.prototype.set$NudgeAmount.call(t1, 30);
+    this._horizontalScrollBar = X.HorizontalScrollBar$(this);
+    this._horizontalScrollBar.set$Dock(C.Pos_16);
+    t1 = this._horizontalScrollBar.BarMoved;
+    t1.add$1(t1, new X.GwenScrollControlEventHandler(this, 1));
+    this._canScrollH = true;
+    t1 = this._horizontalScrollBar;
+    t1.toString;
+    X.ScrollBar.prototype.set$NudgeAmount.call(t1, 30);
+    this.m_InnerPanel = X.GwenControlBase$(this);
+    t1 = this.m_InnerPanel;
+    t2 = t1.m_Bounds;
+    t1.SetBounds$4(0, 0, t2.width, t2.height);
+    this.m_InnerPanel.set$Margin($.get$GwenMargin_Five());
+    this.m_InnerPanel.SendToBack$0();
+    this.m_InnerPanel.m_MouseInputEnabled = false;
+    this._autoHideBars = false;
+  },
+  static: {
+ScrollControl$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t8, [J.JSInt]);
+  t9 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t9, [J.JSInt]);
+  t9 = new X.ScrollControl(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
+  t9.GwenControlBase$1($parent);
+  t9.ScrollControl$1($parent);
+  return t9;
 }}
 
 },
@@ -11925,6 +13220,8 @@ TextBox: {"": "Label;_selectAll,_cursorPos,_cursorEnd,m_SelectionBounds,m_CaretB
     t1 = this.get$TextPadding().Left;
     if (typeof idealx !== "number")
       throw idealx.$gt();
+    if (typeof t1 !== "number")
+      throw H.iae(t1);
     if (idealx > t1)
       idealx = this.get$TextPadding().Left;
     t1 = this._text;
@@ -12031,6 +13328,248 @@ TextBox_removeFromString: function(orig, startPos, $length) {
   if (t2 >= t1)
     return J.substring$1$s(orig, startPos);
   return J.getInterceptor$s(orig).substring$2(orig, 0, startPos) + C.JSString_methods.substring$1(orig, t2);
+}}
+
+},
+
+GwenScrollBarEventHandler: {"": "GwenEventHandler;_code,_scrollBar",
+  Invoke$2: function(control, args) {
+    var hscrollBar, vscrollBar, hscrollBar0, t1;
+    hscrollBar = this._scrollBar;
+    vscrollBar = !!hscrollBar.$isVerticalScrollBar ? hscrollBar : null;
+    hscrollBar0 = !!hscrollBar.$isHorizontalScrollBar ? hscrollBar : null;
+    t1 = this._code;
+    switch (t1) {
+      case 0:
+        vscrollBar.NudgeUp$2(control, args);
+        break;
+      case 1:
+        vscrollBar.NudgeDown$2(control, args);
+        break;
+      case 2:
+        hscrollBar0.NudgeLeft$2(control, args);
+        break;
+      case 3:
+        hscrollBar0.NudgeRight$2(control, args);
+        break;
+      case 4:
+        hscrollBar.OnBarMoved$2(control, args);
+        break;
+      default:
+        throw H.wrapException(new P.ArgumentError("GwenScrollBarEventHandler code was illegal (" + t1 + ")"));
+    }
+  },
+  static: {
+"": "GwenScrollBarEventHandler_NUDGE_UP,GwenScrollBarEventHandler_NUDGE_DOWN,GwenScrollBarEventHandler_NUDGE_LEFT,GwenScrollBarEventHandler_NUDGE_RIGHT,GwenScrollBarEventHandler_BAR_MOVED",
+}
+
+},
+
+VerticalScrollBar: {"": "ScrollBar;m_ScrollButton,_bar,_depressed,_scrollAmount,_contentSize,_viewableContentSize,_nudgeAmount,BarMoved,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  Layout$1: function(skin) {
+    var t1, t2, t3, t4, barHeight;
+    X.GwenControlBase.prototype.Layout$1.call(this, skin);
+    t1 = this.m_ScrollButton[0];
+    t2 = this.m_Bounds.width;
+    t3 = t1.m_Bounds;
+    t4 = t3.width;
+    t1.SetBounds$4(t3.left, t3.top, t4, t2);
+    this.m_ScrollButton[0].set$Dock(C.Pos_8);
+    t2 = this.m_ScrollButton[1];
+    t4 = this.m_Bounds.width;
+    t3 = t2.m_Bounds;
+    t1 = t3.width;
+    t2.SetBounds$4(t3.left, t3.top, t1, t4);
+    this.m_ScrollButton[1].set$Dock(C.Pos_16);
+    t4 = this._bar;
+    t1 = this.m_Bounds.width;
+    t3 = t4.m_Bounds;
+    t2 = t3.height;
+    t4.SetBounds$4(t3.left, t3.top, t1, t2);
+    t2 = this._bar;
+    t1 = this.m_Bounds.width;
+    t2.set$Padding(new X.GwenPadding(t1, t1, 0, 0));
+    t1 = this._contentSize;
+    if (typeof t1 !== "number")
+      throw t1.$gt();
+    if (t1 > 0) {
+      t2 = this._viewableContentSize;
+      if (typeof t2 !== "number")
+        throw t2.$div();
+      t3 = this.m_Bounds;
+      t3 = J.$sub$n(t3.height, J.$mul$n(t3.width, 2));
+      if (typeof t3 !== "number")
+        throw H.iae(t3);
+      barHeight = t2 / t1 * t3;
+    } else
+      barHeight = 0;
+    t1 = J.$mul$n(this.m_Bounds.width, 0.5);
+    if (typeof t1 !== "number")
+      throw H.iae(t1);
+    if (barHeight < t1)
+      barHeight = J.toDouble$0$n(J.$tdiv$n(this.m_Bounds.width, 2));
+    t1 = this._bar;
+    t2 = C.JSNumber_methods.toInt$0(barHeight);
+    t3 = t1.m_Bounds;
+    t4 = t3.width;
+    t1.SetBounds$4(t3.left, t3.top, t4, t2);
+    t2 = this._bar;
+    t4 = this.m_Bounds;
+    t2.set$IsHidden(J.$le$n(J.$sub$n(t4.height, J.$mul$n(t4.width, 2)), barHeight));
+    if (this._bar._held !== true)
+      this.SetScrollAmount$2(this._scrollAmount, true);
+  },
+  NudgeUp$2: function(control, args) {
+    var t1, t2;
+    if (this.m_Disabled !== true) {
+      t1 = this._scrollAmount;
+      t2 = this.get$NudgeAmount();
+      if (typeof t1 !== "number")
+        throw t1.$sub();
+      this.SetScrollAmount$2(t1 - t2, true);
+    }
+  },
+  NudgeDown$2: function(control, args) {
+    var t1, t2;
+    if (this.m_Disabled !== true) {
+      t1 = this._scrollAmount;
+      t2 = this.get$NudgeAmount();
+      if (typeof t1 !== "number")
+        throw t1.$add();
+      this.SetScrollAmount$2(t1 + t2, true);
+    }
+  },
+  get$NudgeAmount: function() {
+    var t1, t2;
+    if (this._depressed === true) {
+      t1 = this._viewableContentSize;
+      t2 = this._contentSize;
+      if (typeof t1 !== "number")
+        throw t1.$div();
+      if (typeof t2 !== "number")
+        throw H.iae(t2);
+      return t1 / t2;
+    } else
+      return X.ScrollBar.prototype.get$NudgeAmount.call(this);
+  },
+  OnMouseClickedLeft$3: function(x, y, down) {
+    var t1, t2, t3;
+    X.ScrollBar.prototype.OnMouseClickedLeft$3.call(this, x, y, down);
+    if (down) {
+      this._depressed = true;
+      $.InputHandler_MouseFocus = this;
+    } else {
+      t1 = new P.Point(x, y);
+      H.setRuntimeTypeInfo(t1, [null]);
+      t1 = this.CanvasPosToLocal$1(t1).y;
+      t2 = this._bar.m_Bounds;
+      t3 = t2.top;
+      if (typeof t1 !== "number")
+        throw t1.$lt();
+      if (typeof t3 !== "number")
+        throw H.iae(t3);
+      if (t1 < t3) {
+        $.get$GwenEventArgs_Empty();
+        if (this.m_Disabled !== true) {
+          t1 = this._scrollAmount;
+          t2 = this.get$NudgeAmount();
+          if (typeof t1 !== "number")
+            throw t1.$sub();
+          this.SetScrollAmount$2(t1 - t2, true);
+        }
+      } else {
+        t2 = t2.height;
+        if (typeof t2 !== "number")
+          throw H.iae(t2);
+        if (t1 > t3 + t2) {
+          $.get$GwenEventArgs_Empty();
+          if (this.m_Disabled !== true) {
+            t1 = this._scrollAmount;
+            t2 = this.get$NudgeAmount();
+            if (typeof t1 !== "number")
+              throw t1.$add();
+            this.SetScrollAmount$2(t1 + t2, true);
+          }
+        }
+      }
+      this._depressed = false;
+      $.InputHandler_MouseFocus = null;
+    }
+  },
+  CalculateScrolledAmount$0: function() {
+    return J.$div$n(J.$sub$n(this._bar.m_Bounds.top, this.m_Bounds.width), J.$sub$n(J.$sub$n(this.m_Bounds.height, this._bar.m_Bounds.height), J.$mul$n(this.m_Bounds.width, 2)));
+  },
+  SetScrollAmount$2: function(value, forceUpdate) {
+    var t1, t2, newY;
+    value = X.GwenUtil_Clamp(value, 0, 1);
+    if (!X.ScrollBar.prototype.SetScrollAmount$2.call(this, value, forceUpdate))
+      return false;
+    if (forceUpdate) {
+      t1 = this.m_Bounds;
+      t2 = t1.width;
+      t1 = J.$sub$n(J.$sub$n(t1.height, this._bar.m_Bounds.height), J.$mul$n(this.m_Bounds.width, 2));
+      if (typeof t1 !== "number")
+        throw H.iae(t1);
+      newY = J.toInt$0$n(J.$add$ns(t2, value * t1));
+      t1 = this._bar;
+      t1.MoveTo$2(t1.m_Bounds.left, newY);
+    }
+    return true;
+  },
+  OnBarMoved$2: function(control, args) {
+    var t1;
+    if (this._bar._held === true) {
+      this.SetScrollAmount$2(this.CalculateScrolledAmount$0(), false);
+      X.ScrollBar.prototype.OnBarMoved$2.call(this, control, $.get$GwenEventArgs_Empty());
+    } else {
+      t1 = this.m_Parent;
+      if (t1 != null) {
+        t1.m_NeedsLayout = true;
+        t1.m_CacheTextureDirty = true;
+      }
+    }
+  },
+  VerticalScrollBar$1: function($parent) {
+    var t1;
+    this._bar._horizontal = false;
+    this.m_ScrollButton[0]._Direction = C.Pos_8;
+    t1 = this.m_ScrollButton[0].Clicked;
+    t1.add$1(t1, new X.GwenScrollBarEventHandler(0, this));
+    this.m_ScrollButton[1]._Direction = C.Pos_16;
+    t1 = this.m_ScrollButton[1].Clicked;
+    t1.add$1(t1, new X.GwenScrollBarEventHandler(1, this));
+    t1 = this._bar.Dragged;
+    t1.add$1(t1, new X.GwenScrollBarEventHandler(4, this));
+  },
+  $isVerticalScrollBar: true,
+  static: {
+VerticalScrollBar$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+  t9 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t9, [J.JSInt]);
+  t10 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t10, [J.JSInt]);
+  t10 = new X.VerticalScrollBar(null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), null, t9, t10, null, null, null);
+  t10.GwenControlBase$1($parent);
+  t10.ScrollBar$1($parent);
+  t10.VerticalScrollBar$1($parent);
+  return t10;
 }}
 
 },
@@ -12258,7 +13797,7 @@ _TypedImageData: {"": "Object;data>,height>,width>", $is_TypedImageData: true, $
 ["", "testdockbase.dart", , R, {
 TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_right,_top,_bottom,_sizer,_dockedTabControl,_drawHover,_dropFar,_hoverRect,_dockBaseEventHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
   TestDockBase$4: function(cvsr, $parent, width, height) {
-    var t1, label, button, $window, textBox, ckbox, gb, radio;
+    var t1, label, button, $window, textBox, ckbox, rbGroup, radio, scrollControl, but1, listbox;
     this.set$Dock(C.Pos_128);
     t1 = this.m_Bounds;
     this.SetBounds$4(t1.left, t1.top, width, height);
@@ -12271,14 +13810,14 @@ TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_ri
     button.SetBounds$4(t1.left, t1.top, 24, 24);
     button.SetText$1("ok");
     t1 = button.m_Bounds;
-    button.SetBounds$4(300, 10, t1.width, t1.height);
+    button.SetBounds$4(485, 10, t1.width, t1.height);
     button.m_MouseInputEnabled = true;
     button.m_KeyboardInputEnabled = true;
     $window = X.WindowControl$(this, "My Window", false);
     t1 = $window.m_Bounds;
-    $window.SetBounds$4(t1.left, t1.top, 300, 400);
+    $window.SetBounds$4(t1.left, t1.top, 220, 100);
     t1 = $window.m_Bounds;
-    $window.SetBounds$4(10, 15, t1.width, t1.height);
+    $window.SetBounds$4(1, 15, t1.width, t1.height);
     textBox = X.TextBox$(this);
     textBox.SetText$1("Hello");
     textBox._autoSizeToContents = false;
@@ -12290,13 +13829,36 @@ TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_ri
     ckbox._label.SetText$1("Awesomeness");
     t1 = ckbox.m_Bounds;
     ckbox.SetBounds$4(12, 470, t1.width, t1.height);
-    gb = X.GroupBox$(this);
-    gb.SetText$1("Group Box!");
-    gb.SetBounds$4(250, 350, 220, 150);
+    rbGroup = X.RadioButtonGroup$(this);
+    rbGroup.SetText$1("Options!");
+    rbGroup.AddOption$2("option 1", "opName1");
+    rbGroup.AddOption$2("Optioh 2", "opName2");
+    rbGroup.AddOption$2("option 3", "opName3");
+    t1 = rbGroup.m_Bounds;
+    rbGroup.SetBounds$4(260, 350, t1.width, t1.height);
     radio = X.LabeledRadioButton$(this);
     radio._label.SetText$1("Radio Button!");
     t1 = radio.m_Bounds;
     radio.SetBounds$4(120, 440, t1.width, t1.height);
+    scrollControl = X.ScrollControl$(this);
+    scrollControl.SetBounds$4(250, 1, 200, 230);
+    but1 = X.Button$(scrollControl);
+    but1.SetText$1("Twice as big");
+    but1.SetBounds$4(0, 0, 400, 430);
+    listbox = X.ListBox$(this);
+    listbox.AddRowUserData$2("Item One", "item1");
+    listbox.AddRowUserData$2("Item Two", "item2");
+    listbox.AddRowUserData$2("Item THree", "item3");
+    but1 = listbox.m_Bounds;
+    listbox.SetBounds$4(350, 350, but1.width, but1.height);
+    listbox.AddRowUserData$2("Item FOUR", "4");
+    listbox.AddRowUserData$2("ITEM FIVE", "5");
+    listbox.AddRowUserData$2("Item six", "6");
+    listbox.AddRowUserData$2("Item seven", "7");
+    listbox.AddRowUserData$2("ITEM eight", "8");
+    listbox.AddRowUserData$2("Item nine", "9");
+    but1 = listbox.m_Bounds;
+    listbox.SetBounds$4(but1.left, but1.top, 120, 120);
   },
   static: {
 "": "TestDockBase_SkinImageFilename",
@@ -12844,6 +14406,8 @@ Vector3: {"": "Object;storage<",
   },
   $div: function(_, scale) {
     var o, t1, t2, t3, t4;
+    if (typeof scale !== "number")
+      throw H.iae(scale);
     o = 1 / scale;
     t1 = this.storage;
     t2 = t1[0];
@@ -12979,6 +14543,8 @@ Vector4: {"": "Object;storage<",
   },
   $div: function(_, scale) {
     var o, t1, t2, t3, t4, t5;
+    if (typeof scale !== "number")
+      throw H.iae(scale);
     o = 1 / scale;
     t1 = this.storage;
     t2 = t1[0];
@@ -13071,8 +14637,14 @@ W.MouseEvent.$isObject = true;
 W.KeyboardEvent.$isKeyboardEvent = true;
 W.KeyboardEvent.$isObject = true;
 X.GwenEventHandler.$isObject = true;
+X.Label.$isGwenControlBase = true;
+X.Label.$isObject = true;
 X.GwenControlBase.$isGwenControlBase = true;
 X.GwenControlBase.$isObject = true;
+X.ListBoxRow.$isGwenControlBase = true;
+X.ListBoxRow.$isObject = true;
+X.ScrollBarButton.$isGwenControlBase = true;
+X.ScrollBarButton.$isObject = true;
 X.Resizer.$isGwenControlBase = true;
 X.Resizer.$isObject = true;
 X.Bordered.$isObject = true;
@@ -13412,6 +14984,11 @@ J.$indexSet$ax = function(receiver, a0, a1) {
     return receiver[a0] = a1;
   return J.getInterceptor$ax(receiver).$indexSet(receiver, a0, a1);
 };
+J.$le$n = function(receiver, a0) {
+  if (typeof receiver == "number" && typeof a0 == "number")
+    return receiver <= a0;
+  return J.getInterceptor$n(receiver).$le(receiver, a0);
+};
 J.$lt$n = function(receiver, a0) {
   if (typeof receiver == "number" && typeof a0 == "number")
     return receiver < a0;
@@ -13467,6 +15044,9 @@ J.clear$1$ax = function(receiver, a0) {
 };
 J.clearColor$4$x = function(receiver, a0, a1, a2, a3) {
   return J.getInterceptor$x(receiver).clearColor$4(receiver, a0, a1, a2, a3);
+};
+J.clip$0$x = function(receiver) {
+  return J.getInterceptor$x(receiver).clip$0(receiver);
 };
 J.compileShader$1$x = function(receiver, a0) {
   return J.getInterceptor$x(receiver).compileShader$1(receiver, a0);
@@ -13770,6 +15350,9 @@ Isolate.$lazy($, "Two", "GwenMargin_Two", "get$GwenMargin_Two", function() {
 Isolate.$lazy($, "Four", "GwenMargin_Four", "get$GwenMargin_Four", function() {
   return new X.GwenMargin(4, 4, 4, 4);
 });
+Isolate.$lazy($, "Five", "GwenMargin_Five", "get$GwenMargin_Five", function() {
+  return new X.GwenMargin(5, 5, 5, 5);
+});
 Isolate.$lazy($, "Eight", "GwenMargin_Eight", "get$GwenMargin_Eight", function() {
   return new X.GwenMargin(8, 8, 8, 8);
 });
@@ -13806,6 +15389,9 @@ Isolate.$lazy($, "Zero", "GwenPadding_Zero", "get$GwenPadding_Zero", function() 
 });
 Isolate.$lazy($, "One", "GwenPadding_One", "get$GwenPadding_One", function() {
   return new X.GwenPadding(1, 1, 1, 1);
+});
+Isolate.$lazy($, "Three", "GwenPadding_Three", "get$GwenPadding_Three", function() {
+  return new X.GwenPadding(3, 3, 3, 3);
 });
 // Native classes
 

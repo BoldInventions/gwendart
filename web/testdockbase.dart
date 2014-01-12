@@ -18,16 +18,16 @@ class TestDockBase extends DockBase
       Label label = new Label(this);
       label.SetPosition(200, 50);
       label.SetText("Hello, Label!");
-      /*
+      
       Button button = new Button(this);
       button.SetSize(24, 24);
       button.SetText("ok");
-      button.SetPosition(300, 10);
+      button.SetPosition(485, 10);
       button.MouseInputEnabled=true;
       button.KeyboardInputEnabled=true;
    
       WindowControl window = new WindowControl(this, "My Window");
-      window.SetSize(300, 100);
+      window.SetSize(220, 100);
       window.SetPosition(1, 15);
       
       TextBox textBox = new TextBox(this);
@@ -52,20 +52,20 @@ class TestDockBase extends DockBase
       LabeledRadioButton radio = new LabeledRadioButton(this);
       radio.Text = "Radio Button!";
       radio.SetPosition(120, 440);
-      */
-      /*
+      
+      
       ScrollControl scrollControl = new ScrollControl(this);
       scrollControl.SetBounds(250, 1, 200, 230);
       Button but1 = new Button(scrollControl);
       but1.SetText("Twice as big");
       but1.SetBounds(0, 0, 400, 430);
-      */
+      
      
       ListBox listbox = new ListBox(this);
       listbox.AddRowString("Item One", "item1");
       listbox.AddRowString("Item Two", "item2");
       listbox.AddRowString("Item THree", "item3");
-      listbox.SetPosition(350, 15);
+      listbox.SetPosition(350, 350);
 
       listbox.AddRowString("Item FOUR", "4");
       listbox.AddRowString("ITEM FIVE", "5");
