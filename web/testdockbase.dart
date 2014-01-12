@@ -36,6 +36,10 @@ class TestDockBase extends DockBase
       LabeledCheckBox ckbox = new LabeledCheckBox(this);
       ckbox.Text = "Awesomeness";
       ckbox.SetPosition(12, 470);
+      
+      LabeledRadioButton radio = new LabeledRadioButton(this);
+      radio.Text = "Radio Button!";
+      radio.SetPosition(120, 440);
      
      // _timer = new Timer.periodic(new Duration(seconds: 1), timerCallback);
    }

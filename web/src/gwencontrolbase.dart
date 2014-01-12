@@ -1822,7 +1822,7 @@ class GwenControlBase
             Point size = GetChildrenSize();
             //size.x += Padding.Right;
             //size.y += Padding.Bottom;
-            size = new Point<int>(Padding.Right, Padding.Bottom);
+            size = new Point<int>(size.x + Padding.Right, size.y + Padding.Bottom);
             return SetSize(width ? size.x : Width, height ? size.y : Height);
         }
 

@@ -4,7 +4,7 @@ class _Active
 {
    Single Normal;
    Single Checked;
-   _Active(Single normal, Single checked)
+   _Active(Single checked, Single normal)
    {
      Normal = normal;
      Checked = checked;
@@ -15,7 +15,7 @@ class _Disabled
 {
   Single Normal;
   Single Checked;
-  _Disabled(this.Normal, this.Checked);
+  _Disabled(this.Checked, this.Normal);
 }
 
 class _ScrollerButton

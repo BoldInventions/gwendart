@@ -77,7 +77,7 @@ part of gwendart;
             GwenControlBase parent = control.Parent;
             if (null == parent) return;
 
-            control.SetPosition(control.X, ((parent.Height - control.Height) / 2).toInt());
+            control.SetPosition(control.X, (parent.Height - control.Height) ~/ 2);
         }
 
         /// <summary>
