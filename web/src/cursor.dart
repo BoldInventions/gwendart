@@ -22,7 +22,7 @@ class CssCursor
    static const SizeNWSE = const CssCursor._("nwse-resize");
    static const SizeNESW = const CssCursor._("nesw-resize");
    static const NoDrop = const CssCursor._("no-drop");
-   static const SizeAll = const CssCursor._("size-all");
+   static const SizeAll = const CssCursor._("move");
    final String Name;
    
    const CssCursor._(this.Name);

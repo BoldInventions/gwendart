@@ -8,7 +8,7 @@ import 'dart:typed_data';
 import 'dart:async';
 
 
-part 'canvasrenderer.dart';
+part 'webglcanvasrenderer.dart';
 part 'gwenrenderer.dart';
 part 'gwentexture.dart';
 part 'icachetotexture.dart';
@@ -71,6 +71,31 @@ part 'listboxrow.dart';
 part 'listbox.dart';
 part 'gwentablerow.dart';
 part 'gwentable.dart';
+part 'menuitem.dart';
+part 'menu.dart';
+part 'menustrip.dart';
+part 'menudivider.dart';
+part 'rightarrow.dart';
+part 'combobox.dart';
+part 'downarrow.dart';
+part 'treenodelabel.dart';
+part 'treetogglebutton.dart';
+part 'treecontrol.dart';
+part 'treenode.dart';
+part 'canvasrenderer.dart';
+part 'updownbuttonup.dart';
+part 'updownbuttondown.dart';
+part 'numericupdown.dart';
+part 'textboxnumeric.dart';
+part 'splitter.dart';
+part 'splitterbar.dart';
+part 'crosssplitter.dart';
+part 'verticalsplitter.dart';
+part 'horizontalsplitter.dart';
+
+
+
+
 
 
 

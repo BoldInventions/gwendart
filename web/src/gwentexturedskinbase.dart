@@ -562,7 +562,7 @@ class GwenTexturedSkinBase extends GwenSkinBase
                     new _Active(Sing_RadioButton_Active_Checked, Sing_RadioButton_Active_Normal),
                     new _Disabled(Sing_CheckBox_Disabled_Checked, Sing_RadioButton_Disabled_Normal)), 
          new _TextBox(Bor_TextBox_Normal, Bor_TextBox_Focus, Bor_TextBox_Disabled),
-         new _Tree(Bore_Background, Sing_Tree_Plus, Sing_Tree_Minus), 
+         new _Tree(Bore_Background, Sing_Tree_Minus, Sing_Tree_Plus), 
          new _ProgressBar(Bor_ProgressBar_Back, Bor_ProgressBar_Front), 
          new _Scroller(
              Bor_Scroller_TrackV,

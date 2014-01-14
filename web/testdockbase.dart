@@ -15,6 +15,21 @@ class TestDockBase extends DockBase
    {
       Dock = Pos.Fill;
       SetSize(width, height);
+      
+      MenuStrip menu = new MenuStrip(this);
+      MenuItem root = menu.AddItem("File");
+      root.MyMenu.AddItem("Load", "test16.png");
+      root.MyMenu.AddItem("Save");
+      root.MyMenu.AddItem("Save As..");
+      root.MyMenu.AddItem("Exit");
+      
+      MenuItem editroot = menu.AddItem("Edit");
+      MenuItem editSweetMode = editroot.MyMenu.AddItem("Sweet Mode");
+      editSweetMode.IsCheckable = true;
+      editSweetMode.IsChecked = true;
+      MenuItem editChalky = editroot.MyMenu.AddItem("Chalky");
+      editChalky.IsCheckable = true;
+      
       Label label = new Label(this);
       label.SetPosition(200, 50);
       label.SetText("Hello, Label!");
@@ -22,13 +37,13 @@ class TestDockBase extends DockBase
       Button button = new Button(this);
       button.SetSize(24, 24);
       button.SetText("ok");
-      button.SetPosition(485, 10);
+      button.SetPosition(485, 40);
       button.MouseInputEnabled=true;
       button.KeyboardInputEnabled=true;
    
       WindowControl window = new WindowControl(this, "My Window");
       window.SetSize(220, 100);
-      window.SetPosition(1, 15);
+      window.SetPosition(1, 5);
       
       TextBox textBox = new TextBox(this);
       textBox.Text = "Hello";
@@ -55,10 +70,10 @@ class TestDockBase extends DockBase
       
       
       ScrollControl scrollControl = new ScrollControl(this);
-      scrollControl.SetBounds(250, 1, 200, 230);
+      scrollControl.SetBounds(250, 30, 100, 130);
       Button but1 = new Button(scrollControl);
       but1.SetText("Twice as big");
-      but1.SetBounds(0, 0, 400, 430);
+      but1.SetBounds(0, 0, 200, 260);
       
      
       ListBox listbox = new ListBox(this);
@@ -74,6 +89,103 @@ class TestDockBase extends DockBase
       listbox.AddRowString("ITEM eight", "8");
       listbox.AddRowString("Item nine", "9");
       listbox.SetSize(120, 120);
+      
+      ComboBox combo = new ComboBox(this);
+      combo.SetPosition(5, 170);
+      combo.Width = 200;
+      combo.AddItem("Option 1", "one1");
+      combo.AddItem("Option 2", "one2");
+      combo.AddItem("Option 3", "one3");
+      combo.AddItem("Option 4", "one4");
+      combo.AddItem("Option 5", "one5");
+      combo.AddItem("Option 6", "one6");
+      combo.AddItem("Option 7", "one7");
+      
+      /* Simple Tree Control */
+      {
+        TreeControl ctrl = new TreeControl(this);
+
+        ctrl.AddNode("Node One");
+        TreeNode node = ctrl.AddNode("Node Two");
+        {
+          node.AddNode("Node Two Inside");
+
+          node.AddNode("Eyes");
+          {
+            node.AddNode("Brown").AddNode("Node Two Inside").AddNode("Eyes").AddNode("Brown");
+          }
+
+          TreeNode imgnode = node.AddNode("Image");
+          imgnode.SetImage("test16.png");
+
+          imgnode = node.AddNode("Image_Kids");
+          imgnode.SetImage("test16.png");
+          {
+            imgnode.AddNode("Kid1");
+            imgnode.AddNode("Kid2");
+          }
+
+          node.AddNode("Nodes");
+        }
+        ctrl.AddNode("Node Three");
+
+        node = ctrl.AddNode("Clickables");
+        {
+          TreeNode click = node.AddNode("Single Click");
+          //click.Clicked += NodeClicked;
+         // click.RightClicked += NodeClicked;
+
+          click = node.AddNode("Double Click");
+         // click.DoubleClicked += NodeDoubleClicked;
+        }
+
+
+        ctrl.SetBounds(1, 130, 200, 100);
+        ctrl.ExpandAll();
+        
+
+        
+        CrossSplitter m_splitter = new CrossSplitter(this);
+        m_splitter.SetBounds(0, 230, 200, 200);
+        m_splitter.Dock = Pos.None;
+        
+        {
+          VerticalSplitter vsplitter = new VerticalSplitter(m_splitter);
+          Button button1 = new Button(vsplitter);
+          button1.SetText("vertical left");
+          Button button2 = new Button(vsplitter);
+          button2.SetText("vertical right");
+          vsplitter.SetPanel(0, button1);
+          vsplitter.SetPanel(1, button2);
+          m_splitter.SetPanel(0, vsplitter);
+        }
+        {
+          HorizontalSplitter hsplitter = new HorizontalSplitter(m_splitter);
+          Button button1 = new Button(hsplitter);
+          button1.SetText("vertical up");
+          Button button2 = new Button(hsplitter);
+          button2.SetText("vertical down");
+          hsplitter.SetPanel(0, button1);
+          hsplitter.SetPanel(1, button2);
+          m_splitter.SetPanel(1, hsplitter);
+        }
+        Button button3 = new Button(m_splitter);
+        button3.SetText("Quad 3");
+        m_splitter.SetPanel(2, button3);
+        Button button4 = new Button(m_splitter);
+        button4.SetText("Quad 4");
+        m_splitter.SetPanel(3, button4);
+        
+        NumericUpDown nup = new NumericUpDown(this);
+        nup.SetPosition(350, 25);
+        
+
+        //ctrl.Selected += NodeSelected;
+       // ctrl.Expanded += NodeExpanded;
+       // ctrl.Collapsed += NodeCollapsed;
+        
+      }
+      
       //listbox.MaximumSize = new Point(110, 100);
       //listbox.SizeToContents();     
      //if(listbox.Bounds.height > 100) listbox.SetSize(listbox.Bounds.width, 100);

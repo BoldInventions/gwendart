@@ -2,18 +2,40 @@ import 'dart:html';
 import 'src/gwendart.dart';
 import 'testdockbase.dart';
 
-
+const int USE_CANVAS2D_RENDERER = 0;
+const int USE_WEBGL_CANVAS2D_RENDERER =1;
 
 void main() {
 //  querySelector("#sample_text_id")
 //    ..text = "Click me!"
 //    ..onClick.listen(reverseText);
-  CanvasRenderer renderer = new CanvasRenderer(
-      querySelector("#drawHere" ), 
-      querySelector("#skinTextureCanvas"),
-      TestDockBase.SkinImageFilename);
+  int iRendererSelect=USE_CANVAS2D_RENDERER;
+  List<String> listTexturesToPreload = new List<String>();
+  listTexturesToPreload.add("test16.png");
+  CanvasRenderer renderer=null;
+  switch(iRendererSelect)
+  {
+    case USE_CANVAS2D_RENDERER:
+      renderer = new CanvasRenderer(
+          querySelector("#drawHere" ), 
+          querySelector("#drawHere"),
+          querySelector("#skinTextureCanvas"),
+          TestDockBase.SkinImageFilename);
+      break;
+    case USE_WEBGL_CANVAS2D_RENDERER:
+      renderer = new WebglCanvasRenderer(
+          querySelector("#drawHere" ), 
+          querySelector("#textureCanvas"),
+          querySelector("#skinTextureCanvas"),
+          TestDockBase.SkinImageFilename);
+      break;
+    default:
+      throw new ArgumentError("Illegal rednderer code: $iRendererSelect");
+  }
+
+
       renderer.preventBrowserKeyInterpretation();
-  renderer.initialize().then((_) {
+  renderer.initialize(listTexturesToPreload).then((_) {
           GwenRenderer grenderer = new GwenRenderer(renderer);
           GwenTexturedSkinBase skin = new GwenTexturedSkinBase(grenderer, "DefaultSkin.png");
           GwenControlCanvas gcanvas = new GwenControlCanvas(skin);

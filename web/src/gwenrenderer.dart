@@ -312,6 +312,12 @@ class GwenRenderer extends GwenRendererBase
   void loadTexture(GwenTexture t)
   {
      if(t.Name != null) t.HasData = true;
+     Point sz = _cvsr.getTextureSize(t.Name);
+     if(null != sz)
+     {
+       t.Width = sz.x;
+       t.Height = sz.y;
+     }
   }
   void loadTextureRaw(GwenTexture t, var pixelData)
   {
@@ -525,7 +531,7 @@ class GwenRenderer extends GwenRendererBase
   bool _bRenderUpdateNeeded = true;
   void notifyRedrawRequested()
   {
-    bool bCanRenderNow = (null != _gwenCanvas) && !_bAlreadyRendering;
+    bool bCanRenderNow = (null != _gwenCanvas) && !_bAlreadyRendering && !_cvsr.IsRendering;
 
     if(bCanRenderNow)
     {

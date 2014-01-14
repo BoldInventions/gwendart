@@ -6,6 +6,7 @@ abstract class GwenEventHandler
 }
 
 typedef void AcceleratorHandlerFunction(GwenControlBase control, GwenEventArgs args);
+typedef void GwenHandlerFunction(GwenControlBase control, GwenEventArgs args);
 
 class AcceleratorEventHandler extends GwenEventHandler
 {
@@ -19,6 +20,22 @@ class AcceleratorEventHandler extends GwenEventHandler
    AcceleratorEventHandler( AcceleratorHandlerFunction handler ) : _handler = handler
    {
      
+   }
+}
+
+class GwenControlEventHandler extends GwenEventHandler
+{
+//   final GwenControlBase _controlToCall;
+   final GwenHandlerFunction _func;
+   
+   GwenControlEventHandler(/*GwenControlBase controlToCall, */ GwenHandlerFunction func) : /*_controlToCall=controlToCall,*/ _func=func
+   {
+     
+   }
+   
+   void Invoke(GwenControlBase control, GwenEventArgs args)
+   {
+     _func(control, args);
    }
 }
 
