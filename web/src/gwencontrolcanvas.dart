@@ -1,5 +1,15 @@
 part of gwendart;
 
+class GwenMouseEventArgs extends GwenEventArgs
+{
+   final int MouseX;
+   final int MouseY;
+   GwenMouseEventArgs(int mx, int my) : MouseX=mx, MouseY=my
+       {
+     
+       }
+}
+
 class GwenControlCanvas extends GwenControlBase
 {
    bool NeedsRedraw;
@@ -8,6 +18,8 @@ class GwenControlCanvas extends GwenControlBase
    
    GwenControlBase _firstTab;
    GwenControlBase _nextTab;
+   
+   GwenEventHandlerList MouseMovedHandler = new GwenEventHandlerList();
    
    double get Scale => _scale;
    set Scale (double value)
@@ -129,18 +141,25 @@ class GwenControlCanvas extends GwenControlBase
    {
      if (IsHidden)
        return false;
+     
+     bool bDone=false;
 
      // Todo: Handle scaling here..
      //float fScale = 1.0f / Scale();
 
      InputHandler.OnMouseMoved(this, x, y, dx, dy);
 
-     if (InputHandler.HoveredControl == null) return false;
-     if (InputHandler.HoveredControl == this) return false;
-     if (InputHandler.HoveredControl.GetCanvas() != this) return false;
+     bDone = (InputHandler.HoveredControl == null);
+     if(!bDone) bDone= (InputHandler.HoveredControl == this);
+     if(!bDone) bDone= (InputHandler.HoveredControl.GetCanvas() != this);
 
-     InputHandler.HoveredControl.InputMouseMoved(x, y, dx, dy);
-     InputHandler.HoveredControl.UpdateCursor();
+     if(!bDone)
+     {
+       InputHandler.HoveredControl.InputMouseMoved(x, y, dx, dy);
+       InputHandler.HoveredControl.UpdateCursor();
+     }
+     GwenMouseEventArgs mouseArgs = new GwenMouseEventArgs(x, y);
+     MouseMovedHandler.Invoke(this, mouseArgs);
      
      // TODO: implment Drag and Drop
      //DragAndDrop.OnMouseMoved(InputHandler.HoveredControl, x, y);

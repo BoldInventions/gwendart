@@ -83,7 +83,7 @@ class TabControl extends GwenControlBase
    {
      TabControlScrollPressedEventHandler pressHandlerLeft = new TabControlScrollPressedEventHandler(Pos.Left, this);
      TabControlScrollPressedEventHandler pressHandlerRight = new TabControlScrollPressedEventHandler(Pos.Right, this);
-     _scroll = new List<ScrollBarButton>();
+     _scroll = new List<ScrollBarButton>(2);
      _ScrollOffset = 0;
      
      _TabStrip = new TabStrip(this);
@@ -147,6 +147,7 @@ class TabControl extends GwenControlBase
             button.Parent = _TabStrip;
             button.Dock = Pos.Left;
             button.SizeToContents();
+            button.AutoSizeToContents=false;
             if (button.MyTabControl != null)
                 button.MyTabControl.UnsubscribeTabEvent(button);
             button.MyTabControl = this;

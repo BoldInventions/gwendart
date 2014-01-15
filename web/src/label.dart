@@ -120,14 +120,25 @@ class Label extends GwenControlBase
      return new Point(p.x + _text.X, p.y + _text.Y);
    }
    
-   void SizeToContents()
+   Rectangle CalcContentSize()
    {
      _text.SetPosition(TextPadding.Left + Padding.Left, TextPadding.Top + Padding.Top);
      _text.SizeToContents();
+     
+     int newWidth = _text.Width + Padding.Left + Padding.Right + TextPadding.Left + TextPadding.Right;
+     int newHeight = _text.Height + Padding.Top + Padding.Bottom + TextPadding.Top + TextPadding.Bottom;
+     
+     return new Rectangle(0, 0, newWidth, newHeight);
+   }
+   
+   void SizeToContents()
+   {
+     Rectangle contentSize = CalcContentSize();
+     
 
-     SetSize(_text.Width + Padding.Left + Padding.Right + TextPadding.Left + TextPadding.Right, 
-         _text.Height + Padding.Top + Padding.Bottom + TextPadding.Top + TextPadding.Bottom);
+     SetSize(contentSize.width, contentSize.height);
      InvalidateParent();
+
    }
    
    void Layout(GwenSkinBase skin)

@@ -1,7 +1,7 @@
 import 'dart:html';
 import 'src/gwendart.dart';
 
-class TestDockBase extends DockBase
+class TestDockBase extends GwenControlBase
 {
   static const String SkinImageFilename = "DefaultSkin.png";
    GwenControlBase _lastControl;
@@ -10,11 +10,17 @@ class TestDockBase extends DockBase
 //   Timer _timer;
    final CanvasRenderer _cvsr;
    
+   Label _lblMouseCoords;
+   
    TestDockBase(CanvasRenderer cvsr, 
        GwenControlBase parent, int width, int height) : _cvsr=cvsr, super(parent)
    {
       Dock = Pos.Fill;
       SetSize(width, height);
+      
+      //TabButton tabPageButton = LeftDock.MyDockedTabControl.AddPage("Tests");
+      //LeftDock.Width=500;
+      
       
       MenuStrip menu = new MenuStrip(this);
       MenuItem root = menu.AddItem("File");
@@ -30,57 +36,77 @@ class TestDockBase extends DockBase
       MenuItem editChalky = editroot.MyMenu.AddItem("Chalky");
       editChalky.IsCheckable = true;
       
-      Label label = new Label(this);
+      TabControl tabControl = new TabControl(this);
+      tabControl.Dock = Pos.Top;
+      tabControl.Height = Height - menu.Height;
+      
+      TabButton tabButton = tabControl.AddPage("page0");
+      
+      GwenControlBase page0 = tabButton.Page;
+      
+      TabButton tabButton1 = tabControl.AddPage("page1");
+      GwenControlBase page1 = tabButton1.Page;
+      
+      //page0.SetBounds(0, menu.Height, Width, Height-menu.Height);
+      page0.Dock = Pos.Top;
+      page0.Height = Height-menu.Height-24;
+      //page0.SetBounds(0, 0, page0.Parent.Width, page0.Parent.Height-30);
+      
+      page1.Dock = Pos.Top;
+      page1.Height = Height-menu.Height-24;
+     
+      
+      Label label = new Label(page0);
       label.SetPosition(200, 50);
       label.SetText("Hello, Label!");
       
-      Button button = new Button(this);
+      Button button = new Button(page0);
       button.SetSize(24, 24);
       button.SetText("ok");
       button.SetPosition(485, 40);
       button.MouseInputEnabled=true;
       button.KeyboardInputEnabled=true;
    
-      WindowControl window = new WindowControl(this, "My Window");
+      WindowControl window = new WindowControl(page0, "My Window");
       window.SetSize(220, 100);
       window.SetPosition(1, 5);
       
-      TextBox textBox = new TextBox(this);
+      TextBox textBox = new TextBox(page1);
       textBox.Text = "Hello";
       textBox.AutoSizeToContents = false;
-      textBox.SetPosition(13, 490);
+      textBox.SetPosition(250, 410);
       
-      LabeledCheckBox ckbox = new LabeledCheckBox(this);
+      LabeledCheckBox ckbox = new LabeledCheckBox(page1);
       ckbox.Text = "Awesomeness";
-      ckbox.SetPosition(12, 470);
+      ckbox.SetPosition(12, 410);
       
-     // GroupBox gb = new GroupBox(this);
+     // GroupBox gb = new GroupBox(page0);
       //gb.Text = "Group Box!";
      // gb.SetBounds(1, 350, 220, 150);
-      RadioButtonGroup rbGroup = new RadioButtonGroup(this);
+      RadioButtonGroup rbGroup = new RadioButtonGroup(page1);
       rbGroup.SetText("Options!");
       rbGroup.AddOption("option 1", "opName1");
       rbGroup.AddOption("Optioh 2", "opName2");
       rbGroup.AddOption("option 3", "opName3");
-      rbGroup.SetPosition(260, 350);
+      rbGroup.SetPosition(260, 320);
       
-      LabeledRadioButton radio = new LabeledRadioButton(this);
+      LabeledRadioButton radio = new LabeledRadioButton(page0);
       radio.Text = "Radio Button!";
-      radio.SetPosition(120, 440);
+      radio.SetPosition(120, 410);
       
       
-      ScrollControl scrollControl = new ScrollControl(this);
+      ScrollControl scrollControl = new ScrollControl(page0);
       scrollControl.SetBounds(250, 30, 100, 130);
       Button but1 = new Button(scrollControl);
       but1.SetText("Twice as big");
       but1.SetBounds(0, 0, 200, 260);
       
      
-      ListBox listbox = new ListBox(this);
+      ListBox listbox = new ListBox(page0);
       listbox.AddRowString("Item One", "item1");
       listbox.AddRowString("Item Two", "item2");
       listbox.AddRowString("Item THree", "item3");
-      listbox.SetPosition(350, 350);
+      listbox.SetPosition(350, 150);
 
       listbox.AddRowString("Item FOUR", "4");
       listbox.AddRowString("ITEM FIVE", "5");
@@ -90,8 +116,8 @@ class TestDockBase extends DockBase
       listbox.AddRowString("Item nine", "9");
       listbox.SetSize(120, 120);
       
-      ComboBox combo = new ComboBox(this);
-      combo.SetPosition(5, 170);
+      ComboBox combo = new ComboBox(page1);
+      combo.SetPosition(5, 140);
       combo.Width = 200;
       combo.AddItem("Option 1", "one1");
       combo.AddItem("Option 2", "one2");
@@ -103,7 +129,7 @@ class TestDockBase extends DockBase
       
       /* Simple Tree Control */
       {
-        TreeControl ctrl = new TreeControl(this);
+        TreeControl ctrl = new TreeControl(page0);
 
         ctrl.AddNode("Node One");
         TreeNode node = ctrl.AddNode("Node Two");
@@ -140,13 +166,13 @@ class TestDockBase extends DockBase
         }
 
 
-        ctrl.SetBounds(1, 130, 200, 100);
+        ctrl.SetBounds(1, 100, 200, 100);
         ctrl.ExpandAll();
         
 
         
-        CrossSplitter m_splitter = new CrossSplitter(this);
-        m_splitter.SetBounds(0, 230, 200, 200);
+        CrossSplitter m_splitter = new CrossSplitter(page1);
+        m_splitter.SetBounds(0, 200, 200, 200);
         m_splitter.Dock = Pos.None;
         
         {
@@ -176,14 +202,26 @@ class TestDockBase extends DockBase
         button4.SetText("Quad 4");
         m_splitter.SetPanel(3, button4);
         
-        NumericUpDown nup = new NumericUpDown(this);
+        NumericUpDown nup = new NumericUpDown(page1);
         nup.SetPosition(350, 25);
         
-
+        StatusBar statusBar = new StatusBar(page0);
+        _lblMouseCoords = new Label(statusBar);
+        _lblMouseCoords.AutoSizeToContents=false;
+        _lblMouseCoords.SetText( "Mouse : ");
+        _lblMouseCoords.SizeToContents();
+        statusBar.AddControl(_lblMouseCoords, true);
+        statusBar.SendToBack();
         //ctrl.Selected += NodeSelected;
        // ctrl.Expanded += NodeExpanded;
        // ctrl.Collapsed += NodeCollapsed;
         
+      }
+      
+      if(parent is GwenControlCanvas)
+      {
+        GwenControlCanvas canvas = parent;
+        canvas.MouseMovedHandler.add(new GwenControlEventHandler(MouseMoveEventHandler));
       }
       
       //listbox.MaximumSize = new Point(110, 100);
@@ -192,6 +230,31 @@ class TestDockBase extends DockBase
       
      
      // _timer = new Timer.periodic(new Duration(seconds: 1), timerCallback);
+   }
+   
+   void MouseMoveEventHandler(GwenControlBase control, GwenEventArgs args)
+   {
+      if(args is GwenMouseEventArgs)
+      {
+        GwenMouseEventArgs margs = args;
+        OnMouseMoved(margs.MouseX, margs.MouseY, 0, 0);
+      }
+   }
+   
+   void OnMouseMoved(int x, int y, int dx, int dy)
+   {
+     _lblMouseCoords.SetText("Mouse [$x, $y] ");
+     Rectangle contentSize = _lblMouseCoords.CalcContentSize();
+     if( (contentSize.width > _lblMouseCoords.Width) || (contentSize.height > _lblMouseCoords.Height))
+     {
+       _lblMouseCoords.SetSize(contentSize.width, contentSize.height);
+       _lblMouseCoords.Parent.Invalidate();
+     }
+     if(Parent is GwenControlCanvas)
+     {
+       GwenControlCanvas canvas = Parent;
+       canvas.Skin.Renderer.notifyRedrawRequested();
+     }
    }
 /*   
    void timerCallback(Timer timer)

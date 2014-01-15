@@ -352,20 +352,14 @@ class GwenControlBase
         Rectangle addToRenderBounds( Rectangle r )
         {
           
-          bool bChanged=false;
-          num left = m_RenderBounds.left;
-          if(r.left < left) { left = r.left; bChanged = true; }
-          num right = m_RenderBounds.right;
-          if(r.right > right) { right = r.right; bChanged = true; }
-          num top = m_RenderBounds.top;
-          if(r.top < top) { top =  r.top; bChanged = true; }
-          num bottom = m_RenderBounds.bottom;
-          if(r.bottom > bottom) { bottom =  r.bottom; bChanged = true; }
-          if(bChanged)
-          {
-             m_RenderBounds = new Rectangle(left, top, right-left, bottom-top);
-          }
-          return m_RenderBounds;
+
+             return new Rectangle(
+                 m_RenderBounds.left+r.left, 
+                 m_RenderBounds.top+r.top, 
+                 m_RenderBounds.width+r.width, 
+                 m_RenderBounds.height+r.height);
+        
+
         }
 
         /// <summary>
@@ -952,9 +946,9 @@ class GwenControlBase
                 m_Bounds.height == height)
                 return false;
             
-            if(0 > width)
+            if(this is TabTitleBar)
             {
-              print("width negative");
+              print("TabTitleBar SetBounds");
             }
 
             Rectangle oldBounds = Bounds;
@@ -1490,7 +1484,7 @@ class GwenControlBase
               if(null!=found) return found;
             }
 
-
+            // TODO: kds - this looks wrong - GetControlAt shouldn't not work just because mouse input is off
             if (!MouseInputEnabled)
                 return null;
 
@@ -1517,9 +1511,12 @@ class GwenControlBase
                 skin = m_Skin;
             if (IsHidden)
                 return;
+            
+
 
             if (m_NeedsLayout)
             {
+
                 m_NeedsLayout = false;
                 Layout(skin);
             }
@@ -1543,10 +1540,9 @@ class GwenControlBase
 
             for(GwenControlBase child in m_Children)
             {
-               // if(child is Button)
-               // {
-                //  print("Control.RecurseLayout child is button");
-               // }
+              
+
+              
                 if (child.IsHidden)
                     continue;
 
