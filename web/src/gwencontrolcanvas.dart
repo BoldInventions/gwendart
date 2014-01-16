@@ -31,7 +31,8 @@ class GwenControlCanvas extends GwenControlBase
        Skin.Renderer.Scale = _scale;
      }
      OnScaleChanged();
-     Redraw();
+     /* 15Jan2014 kds - if boundschanged called from constructor, it is not ready for laying out yet. */
+     new Future(Redraw);
    }
    
    Color get BackgroundColor => _backgroundColor;

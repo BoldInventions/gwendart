@@ -208,6 +208,7 @@ class TextBox extends Label
             //m_CaretBounds.Height = TextHeight + 2;
             m_CaretBounds = new Rectangle(pA.x, TextY - 1, 1, TextHeight+2);
 
+
             Redraw();
         }
 

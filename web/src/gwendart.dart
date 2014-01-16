@@ -93,7 +93,7 @@ part 'crosssplitter.dart';
 part 'verticalsplitter.dart';
 part 'horizontalsplitter.dart';
 part 'statusbar.dart';
-
+part 'messagebox.dart';
 
 
 

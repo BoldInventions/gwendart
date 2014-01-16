@@ -27,6 +27,8 @@ class TestDockBase extends GwenControlBase
       root.MyMenu.AddItem("Load", "test16.png");
       root.MyMenu.AddItem("Save");
       root.MyMenu.AddItem("Save As..");
+      MenuItem menuItemAbout = root.MyMenu.AddItem("About");
+      menuItemAbout.Clicked.add(new GwenControlEventHandler(buttonClickHandler_showMsgBox));
       root.MyMenu.AddItem("Exit");
       
       MenuItem editroot = menu.AddItem("Edit");
@@ -230,6 +232,12 @@ class TestDockBase extends GwenControlBase
       
      
      // _timer = new Timer.periodic(new Duration(seconds: 1), timerCallback);
+   }
+   
+   void buttonClickHandler_showMsgBox(GwenControlBase control, GwenEventArgs args)
+   {
+      MessageBox msgbox = new MessageBox(Parent, "Hello, MessageBox!", "(Awesome Title)");
+      
    }
    
    void MouseMoveEventHandler(GwenControlBase control, GwenEventArgs args)
