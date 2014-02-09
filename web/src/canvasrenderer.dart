@@ -91,10 +91,12 @@ class CanvasRenderer
     _canvas=displayCanvas;
     _canvas.tabIndex = -1;
     _canvas.focus();
+    _canvas.style.borderWidth = "0px";
     _nameSkinTexture = nameSkinTexture;
     _canvasSkinTexture= canvasSkinTexture;
     _canvasSkinTexture.width = 512;
     _canvasSkinTexture.height = 512;
+    _canvasSkinTexture.style.display = "none";
     _txContextSkin=_canvasSkinTexture.getContext("2d");
     
     _textureCanvas = renderCanvas;
@@ -145,6 +147,7 @@ class CanvasRenderer
   {
     _completerSkinTexture=new Completer();
     _imageElementSkinTexture = new Element.tag('img');
+    _imageElementSkinTexture.style.visibility = "hidden";
     _imageElementSkinTexture.onLoad.listen(onSkinTextureLoaded).onError( (e)
         {
             print("_initSkinTexture error!");

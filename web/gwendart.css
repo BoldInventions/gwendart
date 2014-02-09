@@ -23,6 +23,13 @@ h1, p {
 #textureCanvas {
   width:512px;
   height:512px;
+  visbility:hidden;
+}
+
+#skinTextureCanvas {
+  width:512px;
+  height:512px;
+  visbility:hidden;
 }
 
 #sample_text_id {

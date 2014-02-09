@@ -2446,6 +2446,21 @@ Arrays_copy: function(src, srcStart, dst, dstStart, count) {
     }
 },
 
+Arrays_indexOf: function(a, element, startIndex, endIndex) {
+  var i;
+  if (startIndex >= a.length)
+    return -1;
+  if (startIndex < 0)
+    startIndex = 0;
+  for (i = startIndex; i < endIndex; ++i) {
+    if (i < 0 || i >= a.length)
+      throw H.ioore(a, i);
+    if (J.$eq(a[i], element))
+      return i;
+  }
+  return -1;
+},
+
 IterableMixinWorkaround_forEach: function(iterable, f) {
   var t1;
   for (t1 = new H.ListIterator(iterable, iterable.length, 0, null); t1.moveNext$0();)
@@ -5295,7 +5310,7 @@ Duration: {"": "Object;_duration<",
     return this._duration > other.get$_duration();
   },
   $le: function(_, other) {
-    return C.JSNumber_methods.$le(this._duration, other.get$_duration());
+    return this._duration <= other.get$_duration();
   },
   $ge: function(_, other) {
     return this._duration >= other.get$_duration();
@@ -5773,7 +5788,7 @@ DomException: {"": "Interceptor;",
   "%": "DOMException"
 },
 
-Element: {"": "Node;",
+Element: {"": "Node;style=",
   get$client: function(receiver) {
     var t1 = new P.Rectangle(receiver.clientLeft, receiver.clientTop, receiver.clientWidth, receiver.clientHeight);
     H.setRuntimeTypeInfo(t1, [null]);
@@ -5953,17 +5968,26 @@ CssStyleDeclarationBase: {"": "Object;",
   set$backgroundColor: function(receiver, value) {
     this.setProperty$3(receiver, "background-color", value, "");
   },
+  set$borderWidth: function(receiver, value) {
+    this.setProperty$3(receiver, "border-width", value, "");
+  },
   set$color: function(receiver, value) {
     this.setProperty$3(receiver, "color", value, "");
   },
   set$cursor: function(receiver, value) {
     this.setProperty$3(receiver, "cursor", value, "");
   },
+  set$display: function(receiver, value) {
+    this.setProperty$3(receiver, "display", value, "");
+  },
   get$height: function(receiver) {
     return this.getPropertyValue$1(receiver, "height");
   },
   set$src: function(receiver, value) {
     this.setProperty$3(receiver, "src", value, "");
+  },
+  set$visibility: function(receiver, value) {
+    this.setProperty$3(receiver, "visibility", value, "");
   },
   get$width: function(receiver) {
     return this.getPropertyValue$1(receiver, "width");
@@ -6311,6 +6335,23 @@ _RectangleBase: {"": "Object;",
     t3 = J.get$hashCode$(this.width);
     t4 = J.get$hashCode$(this.height);
     return P._JenkinsSmiHash_finish0(P._JenkinsSmiHash_combine0(P._JenkinsSmiHash_combine0(P._JenkinsSmiHash_combine0(P._JenkinsSmiHash_combine0(0, t1), t2), t3), t4));
+  },
+  intersects$1: function(_, other) {
+    var t1, t2, t3, t4;
+    t1 = other.left;
+    t2 = J.getInterceptor$ns(t1);
+    if (J.$le$n(this.get$left(this), t2.$add(t1, other.width)))
+      if (t2.$le(t1, J.$add$ns(this.left, this.width))) {
+        t1 = this.top;
+        t2 = other.top;
+        t3 = J.getInterceptor$ns(t2);
+        t4 = J.getInterceptor$n(t1);
+        t1 = t4.$le(t1, t3.$add(t2, other.height)) && t3.$le(t2, t4.$add(t1, this.height));
+      } else
+        t1 = false;
+    else
+      t1 = false;
+    return t1;
   }
 },
 
@@ -6675,6 +6716,20 @@ Uint64List: {"": "TypedData;", $isList: true,
 
 }}],
 ["gwendart", "src/gwendart.dart", , X, {
+Align_Center: function(control) {
+  var $parent, t1, t2, t3;
+  $parent = control.m_Parent;
+  if ($parent == null)
+    return;
+  t1 = $parent.m_Padding.Left;
+  t1 = J.$add$ns(t1, J.$div$n(J.$sub$n(J.$sub$n(J.$sub$n($parent.m_Bounds.width, t1), $parent.m_Padding.Right), control.m_Bounds.width), 2));
+  t2 = J.$div$n(J.$sub$n($parent.m_Bounds.height, control.m_Bounds.height), 2);
+  t1 = J.toInt$0$n(t1);
+  t2 = J.toInt$0$n(t2);
+  t3 = control.m_Bounds;
+  control.SetBounds$4(t1, t2, t3.width, t3.height);
+},
+
 Align_CenterHorizontally: function(control) {
   var $parent, t1, t2, t3;
   $parent = control.m_Parent;
@@ -6733,11 +6788,10 @@ GwenUtil_scharIsControl: function(schar) {
 },
 
 GwenUtil_Clamp: function(x, min, max) {
-  if (typeof x !== "number")
-    throw x.$lt();
-  if (x < min)
+  var t1 = J.getInterceptor$n(x);
+  if (t1.$lt(x, min))
     return min;
-  if (x > max)
+  if (t1.$gt(x, max))
     return max;
   return x;
 },
@@ -6780,13 +6834,13 @@ InputHandler_HandleAccelerator: function(canvas, chr) {
 },
 
 InputHandler_OnCanvasThink: function(control) {
-  var t1, time, i, t2, t3, now;
+  var t1, time, i, t2, now, t3;
   t1 = $.InputHandler_MouseFocus;
   if (t1 != null && !t1.get$IsVisible())
     $.InputHandler_MouseFocus = null;
   t1 = $.InputHandler_KeyboardFocus;
   if (t1 != null)
-    t1 = !t1.get$IsVisible() || $.InputHandler_KeyboardFocus.m_KeyboardInputEnabled !== true;
+    t1 = !t1.get$IsVisible() || $.InputHandler_KeyboardFocus.get$KeyboardInputEnabled() !== true;
   else
     t1 = false;
   if (t1)
@@ -6801,14 +6855,7 @@ InputHandler_OnCanvasThink: function(control) {
     t2 = $.get$InputHandler_m_KeyData().KeyState;
     if (i >= t2.length)
       throw H.ioore(t2, i);
-    if (t2[i] === true) {
-      t2 = $.get$InputHandler_m_KeyData().Target;
-      t3 = $.InputHandler_KeyboardFocus;
-      t3 = t2 == null ? t3 != null : t2 !== t3;
-      t2 = t3;
-    } else
-      t2 = false;
-    if (t2) {
+    if (t2[i] === true && !J.$eq($.get$InputHandler_m_KeyData().Target, $.InputHandler_KeyboardFocus)) {
       t2 = $.get$InputHandler_m_KeyData().KeyState;
       if (i >= t2.length)
         throw H.ioore(t2, i);
@@ -6840,7 +6887,7 @@ InputHandler_OnCanvasThink: function(control) {
       t2[i] = t3 + 0.03;
       t2 = $.InputHandler_KeyboardFocus;
       if (t2 != null)
-        t2.OnKeyPressed$2(X.GwenKey_getKeyFromValue(i), true);
+        t2.InputKeyPressed$1(X.GwenKey_getKeyFromValue(i));
     }
   }
 },
@@ -6955,7 +7002,7 @@ InputHandler_OnKeyEvent: function(canvas, key, down) {
       t2 = $.get$InputHandler_m_KeyData();
       t1 = $.InputHandler_KeyboardFocus;
       t2.Target = t1;
-      return t1.OnKeyPressed$2(key, true);
+      return t1.InputKeyPressed$1(key);
     }
   } else {
     t1 = $.get$InputHandler_m_KeyData().KeyState;
@@ -6966,7 +7013,7 @@ InputHandler_OnKeyEvent: function(canvas, key, down) {
       if (iKey >= t1.length)
         throw H.ioore(t1, iKey);
       t1[iKey] = false;
-      return $.InputHandler_KeyboardFocus.OnKeyPressed$2(key, false);
+      return $.InputHandler_KeyboardFocus.InputKeyPressed$2(key, false);
     }
   }
   return false;
@@ -7000,14 +7047,13 @@ InputHandler_UpdateHoveredControl: function(inCanvas) {
 },
 
 InputHandler_FindKeyboardFocus: function(control) {
-  var t1, child, t2;
+  var t1, child;
   if (null == control)
     return;
   if (control.m_KeyboardInputEnabled === true) {
     for (t1 = control.get$Children(), t1 = new H.ListIterator(t1, t1.length, 0, null); t1.moveNext$0();) {
       child = t1._current;
-      t2 = $.InputHandler_KeyboardFocus;
-      if (t2 == null ? child == null : t2 === child)
+      if (J.$eq($.InputHandler_KeyboardFocus, child))
         return;
     }
     control.Focus$0();
@@ -7078,9 +7124,11 @@ Bordered: {"": "Object;_Texture,_rects,_margin,_width,_height",
     this._Texture = texture;
     this._margin = inMargin;
     t1 = this._margin;
-    this.SetRect$5(0, x, y, t1.Left, J.toDouble$0$n(t1.Top));
+    this.SetRect$5(0, x, y, J.toDouble$0$n(t1.Left), J.toDouble$0$n(t1.Top));
     t1 = this._margin;
     t2 = t1.Left;
+    if (typeof t2 !== "number")
+      throw H.iae(t2);
     this.SetRect$5(1, x + t2, y, w - t2 - t1.Right, J.toDouble$0$n(t1.Top));
     t1 = x + w;
     t2 = this._margin;
@@ -7090,9 +7138,11 @@ Bordered: {"": "Object;_Texture,_rects,_margin,_width,_height",
     t3 = t2.Top;
     if (typeof t3 !== "number")
       throw H.iae(t3);
-    this.SetRect$5(3, x, y + t3, t2.Left, h - t3 - t2.Bottom);
+    this.SetRect$5(3, x, y + t3, J.toDouble$0$n(t2.Left), h - t3 - t2.Bottom);
     t2 = this._margin;
     t3 = t2.Left;
+    if (typeof t3 !== "number")
+      throw H.iae(t3);
     t4 = t2.Top;
     if (typeof t4 !== "number")
       throw H.iae(t4);
@@ -7106,16 +7156,18 @@ Bordered: {"": "Object;_Texture,_rects,_margin,_width,_height",
     t2 = y + h;
     t3 = this._margin;
     t4 = t3.Bottom;
-    this.SetRect$5(6, x, t2 - t4, t3.Left, t4);
+    this.SetRect$5(6, x, t2 - t4, J.toDouble$0$n(t3.Left), t4);
     t4 = this._margin;
     t3 = t4.Left;
+    if (typeof t3 !== "number")
+      throw H.iae(t3);
     t5 = t4.Bottom;
     this.SetRect$5(7, x + t3, t2 - t5, w - t3 - t4.Right, t5);
     t5 = this._margin;
     t4 = t5.Right;
     t5 = t5.Bottom;
     this.SetRect$5(8, t1 - t4, t2 - t5, t4, t5);
-    left = C.JSNumber_methods.toInt$0(C.JSInt_methods.roundToDouble$0(this._margin.Left * drawMarginScale));
+    left = J.round$0$n(J.$mul$n(this._margin.Left, drawMarginScale));
     right = C.JSNumber_methods.toInt$0(C.JSInt_methods.roundToDouble$0(this._margin.Right * drawMarginScale));
     this._margin = new X.GwenMargin(J.round$0$n(J.$mul$n(this._margin.Top, drawMarginScale)), C.JSNumber_methods.toInt$0(C.JSInt_methods.roundToDouble$0(this._margin.Bottom * drawMarginScale)), left, right);
     this._width = w - x;
@@ -7300,9 +7352,17 @@ Button: {"": "Label;_depressed,IsToggle,_toggleStatus,_centerImage,_image,Presse
     }
     if (this._image == null)
       this._image = X.ImagePanel$(this);
-    t1 = this._image._texture;
-    t1.set$Name(textureName);
-    t1._renderer.loadTexture$1(t1);
+    t1 = this._image;
+    t2 = t1._texture;
+    t2.set$Name(textureName);
+    t2._renderer.loadTexture$1(t2);
+    if (t1._autoSizeToContents) {
+      t2 = t1._texture;
+      t3 = t2._width;
+      t2 = t2._height;
+      t4 = t1.m_Bounds;
+      t1.SetBounds$4(t4.left, t4.top, t3, t2);
+    }
     t1 = this._image;
     t2 = t1._texture;
     t3 = t2._width;
@@ -7476,6 +7536,7 @@ CanvasRenderer: {"": "Object;IsRendering,_canvas,_viewportWidth,_viewportHeight,
     H.setRuntimeTypeInfo(t2, [t1]);
     this._completerSkinTexture = t2;
     this._imageElementSkinTexture = W._ElementFactoryProvider_createElement_tag("img", null);
+    J.set$visibility$x(J.get$style$x(this._imageElementSkinTexture), "hidden");
     t2 = J.get$onLoad$x(this._imageElementSkinTexture);
     t1 = this.get$onSkinTextureLoaded();
     t1 = new W._EventStreamSubscription(0, t2._html$_target, t2._eventType, W._wrapZone(t1), t2._useCapture);
@@ -7671,7 +7732,7 @@ CanvasRenderer: {"": "Object;IsRendering,_canvas,_viewportWidth,_viewportHeight,
     t1 = J.measureText$1$x(this._txContext, "M").width;
     if (typeof t1 !== "number")
       throw t1.$mul();
-    t1 = new P.Point(J.toInt$0$n(textWidth), C.JSDouble_methods.toInt$0(t1 * 1.2));
+    t1 = new P.Point(J.toInt$0$n(textWidth), C.JSNumber_methods.toInt$0(3 + t1 * 1.3));
     H.setRuntimeTypeInfo(t1, [J.JSInt]);
     return t1;
   },
@@ -7846,10 +7907,12 @@ CanvasRenderer: {"": "Object;IsRendering,_canvas,_viewportWidth,_viewportHeight,
     this._canvas = displayCanvas;
     this._canvas.tabIndex = -1;
     this._canvas.focus();
+    J.set$borderWidth$x(this._canvas.style, "0px");
     this._nameSkinTexture = nameSkinTexture;
     this._canvasSkinTexture = canvasSkinTexture;
     J.set$width$x(this._canvasSkinTexture, 512);
     J.set$height$x(this._canvasSkinTexture, 512);
+    J.set$display$x(this._canvasSkinTexture.style, "none");
     this._txContextSkin = J.getContext$1$x(this._canvasSkinTexture, "2d");
     this._textureCanvas = renderCanvas;
     this._varTextureCanvas = this._textureCanvas;
@@ -8053,6 +8116,9 @@ GwenComboBoxEventHandler: {"": "GwenEventHandler;_comboBox",
 },
 
 ComboBox: {"": "Button;_menu,_button,_selectedItem,ItemSelected,_depressed,IsToggle,_toggleStatus,_centerImage,_image,Pressed,Released,Toggled,ToggledOn,ToggledOff,_text,_align,_textPadding,_autoSizeToContents,_mouseEventHandlerAddedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  get$SelectedItem: function() {
+    return this._selectedItem;
+  },
   get$IsMenuComponent: function() {
     return true;
   },
@@ -8523,85 +8589,6 @@ CssCursor: {"": "Object;Name", static: {
 }
 },
 
-DockBaseEventHandler: {"": "GwenEventHandler;_dockBase",
-  Invoke$2: function(control, args) {
-    var t1 = this._dockBase;
-    t1.DoRedundancyCheck$0();
-    t1.DoConsolidateCheck$0();
-  }
-},
-
-DockBase: {"": "GwenControlBase;",
-  OnKeySpace$1: function(down) {
-    return false;
-  },
-  Render$1: function(skin) {
-  },
-  get$IsEmpty: function() {
-    return true;
-  },
-  DoRedundancyCheck$0: function() {
-    if (!this.get$IsEmpty())
-      return;
-    var pDockParent = H.interceptedTypeCast(this.m_Parent, "$isDockBase");
-    if (null == pDockParent)
-      return;
-    pDockParent.toString;
-    this.set$IsHidden(true);
-    pDockParent.DoRedundancyCheck$0();
-    pDockParent.DoConsolidateCheck$0();
-  },
-  DoConsolidateCheck$0: function() {
-    if (this.get$IsEmpty())
-      return;
-    return;
-  },
-  RenderOver$1: function(skin) {
-    var render, t1, t2, t3;
-    if (!this._drawHover)
-      return;
-    render = skin._renderer;
-    t1 = new X.Color(null, null, null, null);
-    t1.a = 20;
-    t1.r = 255;
-    t1.g = 200;
-    t1.b = 255;
-    t2 = render._cvsr;
-    J.set$fillStyle$x(t2._txContext, t1.get$StyleString());
-    t2._color = t1;
-    render.drawFilledRect$1(this.m_RenderBounds);
-    t1 = this._hoverRect;
-    if (J.$eq(t1.left, 0))
-      return;
-    t2 = new X.Color(null, null, null, null);
-    t2.a = 100;
-    t2.r = 255;
-    t2.g = 200;
-    t2.b = 255;
-    t3 = render._cvsr;
-    J.set$fillStyle$x(t3._txContext, t2.get$StyleString());
-    t3._color = t2;
-    render.drawFilledRect$1(t1);
-    t2 = new X.Color(null, null, null, null);
-    t2.a = 200;
-    t2.r = 255;
-    t2.g = 200;
-    t2.b = 255;
-    t3 = render._cvsr;
-    J.set$fillStyle$x(t3._txContext, t2.get$StyleString());
-    t3._color = t2;
-    render.drawLinedRect$1(t1);
-  },
-  DockBase$1: function($parent) {
-    var t1;
-    this.set$Padding($.get$GwenPadding_One());
-    t1 = this.m_Bounds;
-    this.SetBounds$4(t1.left, t1.top, 200, 200);
-    this._dockBaseEventHandler = new X.DockBaseEventHandler(this);
-  },
-  $isDockBase: true
-},
-
 DownArrow: {"": "GwenControlBase;_comboBox,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
   Render$1: function(skin) {
     var t1, t2, t3, t4;
@@ -8795,6 +8782,9 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
       return false;
     return t1.get$IsMenuComponent();
   },
+  get$ShouldClip: function() {
+    return true;
+  },
   set$Padding: function(value) {
     var t1 = this.m_Padding;
     if (t1 == null ? value == null : t1 === value)
@@ -8830,6 +8820,14 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     this.m_Hidden = value;
     this.m_NeedsLayout = true;
     this.m_CacheTextureDirty = true;
+  },
+  get$KeyboardInputEnabled: function() {
+    return this.m_KeyboardInputEnabled;
+  },
+  addToRenderBounds$1: function(r) {
+    var t1 = new P.Rectangle(J.$add$ns(this.m_RenderBounds.left, r.left), J.$add$ns(this.m_RenderBounds.top, r.top), J.$add$ns(this.m_RenderBounds.width, r.width), J.$add$ns(this.m_RenderBounds.height, r.height));
+    H.setRuntimeTypeInfo(t1, [null]);
+    return t1;
   },
   set$MinimumSize: function(value) {
     var t1 = new P.Point(value.x, value.y);
@@ -8976,16 +8974,11 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     this.m_CacheTextureDirty = true;
   },
   MoveTo$2: function(ix, iy) {
-    var $parent, t1, t2;
+    var $parent, t1;
     if (this.m_RestrictToParent === true && this.m_Parent != null) {
       $parent = this.m_Parent;
-      if (J.$lt$n(J.$sub$n(ix, this.m_Padding.Left), $parent.m_Margin.Left)) {
-        t1 = $parent.m_Margin.Left;
-        t2 = this.m_Padding.Left;
-        if (typeof t2 !== "number")
-          throw H.iae(t2);
-        ix = t1 + t2;
-      }
+      if (J.$lt$n(J.$sub$n(ix, this.m_Padding.Left), $parent.m_Margin.Left))
+        ix = J.$add$ns($parent.m_Margin.Left, this.m_Padding.Left);
       if (J.$lt$n(J.$sub$n(iy, this.m_Padding.Top), $parent.m_Margin.Top))
         iy = J.$add$ns($parent.m_Margin.Top, this.m_Padding.Top);
       if (J.$gt$n(J.$add$ns(J.$add$ns(ix, this.m_Bounds.width), this.m_Padding.Right), J.$sub$n($parent.m_Bounds.width, $parent.m_Margin.Right)))
@@ -9000,10 +8993,6 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     var oldBounds, t1;
     if (J.$eq(this.m_Bounds.left, x) && J.$eq(this.m_Bounds.top, y) && J.$eq(this.m_Bounds.width, width) && J.$eq(this.m_Bounds.height, height))
       return false;
-    if (typeof width !== "number")
-      throw H.iae(width);
-    if (0 > width)
-      P.print("width negative");
     oldBounds = this.m_Bounds;
     t1 = new P.Rectangle(x, y, width, height);
     H.setRuntimeTypeInfo(t1, [J.JSInt]);
@@ -9079,13 +9068,15 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     oldRegion = render._clipRegion;
     if (!!this.$isVerticalScrollBar)
       ;
-    render.AddClipRegion$1(clipRect);
-    if (!render.get$ClipRegionVisible()) {
-      render._renderOffset = oldRenderOffset;
-      render._clipRegion = oldRegion;
-      return;
+    if (this.get$ShouldClip()) {
+      render.AddClipRegion$1(clipRect);
+      if (!render.get$ClipRegionVisible()) {
+        render._renderOffset = oldRenderOffset;
+        render._clipRegion = oldRegion;
+        return;
+      }
+      render._cvsr.clipCanvas$1(render._clipRegion);
     }
-    render._cvsr.clipCanvas$1(render._clipRegion);
     this.Render$1(skin);
     t1 = this.m_Children;
     t2 = t1.length;
@@ -9098,7 +9089,6 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
       }
     render._clipRegion = oldRegion;
     render._cvsr.clipCanvas$1(render._clipRegion);
-    this.RenderOver$1(skin);
     this.RenderFocus$1(skin);
     render._renderOffset = oldRenderOffset;
   },
@@ -9166,9 +9156,9 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     this.Redraw$0();
   },
   Focus$0: function() {
-    var t1 = $.InputHandler_KeyboardFocus;
-    if (t1 === this)
+    if (J.$eq($.InputHandler_KeyboardFocus, this))
       return;
+    var t1 = $.InputHandler_KeyboardFocus;
     if (t1 != null)
       t1.OnLostKeyboardFocus$0();
     $.InputHandler_KeyboardFocus = this;
@@ -9176,7 +9166,7 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     this.Redraw$0();
   },
   Blur$0: function() {
-    if ($.InputHandler_KeyboardFocus !== this)
+    if (!J.$eq($.InputHandler_KeyboardFocus, this))
       return;
     $.InputHandler_KeyboardFocus = null;
     this.OnLostKeyboardFocus$0();
@@ -9216,7 +9206,7 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     skin._renderer;
   },
   RecurseLayout$1: function(skin) {
-    var skin0, bounds, height, left, t1, width, $top, t2, height0, t3, t4, t5, t6, t7, t8, child, t9, margin, t10, t11, t12, t13, height2, width2;
+    var skin0, bounds, height, left, t1, width, $top, t2, height0, t3, t4, t5, t6, t7, child, t8, margin, t9, t10, t11, t12, height2, width2;
     skin0 = this.m_Skin;
     if (skin0 != null)
       skin = skin0;
@@ -9235,75 +9225,72 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     t1 = this.m_Padding;
     t2 = J.getInterceptor$n(height);
     height0 = t2.$sub(height, J.$add$ns(t1.Top, t1.Bottom));
-    for (t1 = this.m_Children, t1 = new H.ListIterator(t1, t1.length, 0, null), t3 = C.Pos_16.value, t4 = C.Pos_4.value, t5 = !!this.$isVerticalScrollBar, t6 = C.Pos_2.value, t7 = C.Pos_8.value, t8 = C.Pos_128.value; t1.moveNext$0();) {
+    for (t1 = this.m_Children, t1 = new H.ListIterator(t1, t1.length, 0, null), t3 = C.Pos_16.value, t4 = C.Pos_4.value, t5 = C.Pos_2.value, t6 = C.Pos_8.value, t7 = C.Pos_128.value; t1.moveNext$0();) {
       child = t1._current;
       if (child.get$IsHidden() === true)
         continue;
-      t9 = child.m_Dock.value;
-      if (0 !== (t9 & t8) >>> 0)
+      t8 = child.m_Dock.value;
+      if (0 !== (t8 & t7) >>> 0)
         continue;
-      if (0 !== (t9 & t7) >>> 0) {
-        margin = child.m_Margin;
-        t10 = margin.Left;
-        t11 = J.$add$ns(left, t10);
-        t12 = margin.Top;
-        t13 = J.getInterceptor$ns($top);
-        child.SetBounds$4(t11, t13.$add($top, t12), J.$sub$n(J.$sub$n(width, t10), margin.Right), child.m_Bounds.height);
-        height2 = J.$add$ns(J.$add$ns(t12, margin.Bottom), child.m_Bounds.height);
-        $top = t13.$add($top, height2);
-        height0 = J.$sub$n(height0, height2);
-      }
-      if (0 !== (t9 & t6) >>> 0) {
-        margin = child.m_Margin;
-        t10 = margin.Left;
-        t11 = J.getInterceptor$ns(left);
-        t12 = t11.$add(left, t10);
-        t13 = margin.Top;
-        child.SetBounds$4(t12, J.$add$ns($top, t13), child.m_Bounds.width, J.$sub$n(J.$sub$n(height0, t13), margin.Bottom));
-        t13 = margin.Right;
-        t12 = child.m_Bounds.width;
-        if (typeof t12 !== "number")
-          throw H.iae(t12);
-        width2 = t10 + t13 + t12;
-        left = t11.$add(left, width2);
-        width = J.$sub$n(width, width2);
-      }
-      if (t5)
-        ;
-      if (0 !== (t9 & t4) >>> 0) {
-        margin = child.m_Margin;
-        t10 = J.$sub$n(J.$add$ns(left, width), child.m_Bounds.width);
-        t11 = margin.Right;
-        t10 = J.$sub$n(t10, t11);
-        t12 = margin.Top;
-        child.SetBounds$4(t10, J.$add$ns($top, t12), child.m_Bounds.width, J.$sub$n(J.$sub$n(height0, t12), margin.Bottom));
-        t12 = margin.Left;
-        t10 = child.m_Bounds.width;
-        if (typeof t10 !== "number")
-          throw H.iae(t10);
-        width = J.$sub$n(width, t12 + t11 + t10);
-      }
-      if (0 !== (t9 & t3) >>> 0) {
+      if (0 !== (t8 & t6) >>> 0) {
         margin = child.m_Margin;
         t9 = margin.Left;
         t10 = J.$add$ns(left, t9);
-        t11 = J.$sub$n(J.$add$ns($top, height0), child.m_Bounds.height);
-        t12 = margin.Bottom;
-        child.SetBounds$4(t10, J.$sub$n(t11, t12), J.$sub$n(J.$sub$n(width, t9), margin.Right), child.m_Bounds.height);
-        height0 = J.$sub$n(height0, J.$add$ns(J.$add$ns(child.m_Bounds.height, t12), margin.Top));
+        t11 = margin.Top;
+        t12 = J.getInterceptor$ns($top);
+        child.SetBounds$4(t10, t12.$add($top, t11), J.$sub$n(J.$sub$n(width, t9), margin.Right), child.m_Bounds.height);
+        height2 = J.$add$ns(J.$add$ns(t11, margin.Bottom), child.m_Bounds.height);
+        $top = t12.$add($top, height2);
+        height0 = J.$sub$n(height0, height2);
+      }
+      if (0 !== (t8 & t5) >>> 0) {
+        margin = child.m_Margin;
+        t9 = margin.Left;
+        t10 = J.getInterceptor$ns(left);
+        t11 = t10.$add(left, t9);
+        t12 = margin.Top;
+        child.SetBounds$4(t11, J.$add$ns($top, t12), child.m_Bounds.width, J.$sub$n(J.$sub$n(height0, t12), margin.Bottom));
+        width2 = J.$add$ns(J.$add$ns(t9, margin.Right), child.m_Bounds.width);
+        left = t10.$add(left, width2);
+        width = J.$sub$n(width, width2);
+      }
+      if (0 !== (t8 & t4) >>> 0) {
+        margin = child.m_Margin;
+        t9 = J.$sub$n(J.$add$ns(left, width), child.m_Bounds.width);
+        t10 = margin.Right;
+        t9 = J.$sub$n(t9, t10);
+        t11 = margin.Top;
+        child.SetBounds$4(t9, J.$add$ns($top, t11), child.m_Bounds.width, J.$sub$n(J.$sub$n(height0, t11), margin.Bottom));
+        width = J.$sub$n(width, J.$add$ns(J.$add$ns(margin.Left, t10), child.m_Bounds.width));
+      }
+      if (0 !== (t8 & t3) >>> 0) {
+        margin = child.m_Margin;
+        t8 = margin.Left;
+        t9 = J.$add$ns(left, t8);
+        t10 = J.$sub$n(J.$add$ns($top, height0), child.m_Bounds.height);
+        t11 = margin.Bottom;
+        child.SetBounds$4(t9, J.$sub$n(t10, t11), J.$sub$n(J.$sub$n(width, t8), margin.Right), child.m_Bounds.height);
+        height0 = J.$sub$n(height0, J.$add$ns(J.$add$ns(child.m_Bounds.height, t11), margin.Top));
       }
       child.RecurseLayout$1(skin);
     }
     this.m_InnerBounds = this.m_RenderBounds;
-    for (t1 = this.m_Children, t1 = new H.ListIterator(t1, t1.length, 0, null), t3 = J.getInterceptor$ns(left), t4 = J.getInterceptor$ns($top), t5 = J.getInterceptor$n(width); t1.moveNext$0();) {
+    for (t1 = this.m_Children, t1 = new H.ListIterator(t1, t1.length, 0, null), t3 = J.getInterceptor$ns(left), t4 = J.getInterceptor$ns($top), t5 = J.getInterceptor$n(width), t6 = !!this.$isLabeledRadioButton; t1.moveNext$0();) {
       child = t1._current;
-      if (0 === (child.get$Dock().value & t8) >>> 0)
+      if (t6) {
+        t8 = J.getInterceptor(child);
+        t8 = typeof child === "object" && child !== null && !!t8.$isLabel;
+      } else
+        t8 = false;
+      if (t8)
+        ;
+      if (0 === (child.get$Dock().value & t7) >>> 0)
         continue;
       margin = child.m_Margin;
-      t6 = margin.Left;
-      t7 = t3.$add(left, t6);
-      t9 = margin.Top;
-      child.SetBounds$4(t7, t4.$add($top, t9), J.$sub$n(t5.$sub(width, t6), margin.Right), J.$sub$n(t2.$sub(height, t9), margin.Bottom));
+      t8 = margin.Left;
+      t9 = t3.$add(left, t8);
+      t10 = margin.Top;
+      child.SetBounds$4(t9, t4.$add($top, t10), J.$sub$n(t5.$sub(width, t8), margin.Right), J.$sub$n(t2.$sub(height, t10), margin.Bottom));
       child.RecurseLayout$1(skin);
     }
     this.PostLayout$1(skin);
@@ -9313,7 +9300,7 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
       if (this.GetCanvas$0()._nextTab == null)
         this.GetCanvas$0()._nextTab = this;
     }
-    if ($.InputHandler_KeyboardFocus === this)
+    if (J.$eq($.InputHandler_KeyboardFocus, this))
       this.GetCanvas$0()._nextTab = null;
   },
   LocalPosToCanvas$1: function(pnt) {
@@ -9364,6 +9351,17 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     H.setRuntimeTypeInfo(t1, [J.JSInt]);
     this.m_RenderBounds = t1;
   },
+  DragAndDrop_SetPackage$3: function(draggable, $name, userData) {
+    if (this.m_DragAndDrop_Package == null) {
+      this.m_DragAndDrop_Package = X.GwenPackage$();
+      this.m_DragAndDrop_Package.IsDraggable = draggable;
+      this.m_DragAndDrop_Package.Name = $name;
+      this.m_DragAndDrop_Package.UserData = userData;
+    }
+  },
+  DragAndDrop_SetPackage$2: function(draggable, name) {
+    return this.DragAndDrop_SetPackage$3(draggable, name, null);
+  },
   SizeToChildren$2: function(width, height) {
     var size, t1, t2, t3;
     size = this.GetChildrenSize$0();
@@ -9395,7 +9393,7 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
   },
   HandleAccelerator$1: function(accelerator) {
     var t1;
-    if ($.InputHandler_KeyboardFocus === this || !this.get$AccelOnlyFocus())
+    if (J.$eq($.InputHandler_KeyboardFocus, this) || !this.get$AccelOnlyFocus())
       if (this.m_Accelerators.containsKey$1(accelerator)) {
         t1 = this.m_Accelerators;
         t1.$index(t1, accelerator).Invoke$2(this, $.get$GwenEventArgs_Empty());
@@ -9464,6 +9462,12 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
       this.m_Parent.OnKeyPressed$2(key, down);
     return handled;
   },
+  InputKeyPressed$2: function(key, down) {
+    return this.OnKeyPressed$2(key, down);
+  },
+  InputKeyPressed$1: function(key) {
+    return this.InputKeyPressed$2(key, true);
+  },
   OnKeyTab$1: function(down) {
     if (!down)
       return true;
@@ -9504,7 +9508,7 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
     return false;
   },
   RenderFocus$1: function(skin) {
-    if ($.InputHandler_KeyboardFocus !== this)
+    if (!J.$eq($.InputHandler_KeyboardFocus, this))
       return;
     if (this.m_Tabable !== true)
       return;
@@ -9512,14 +9516,15 @@ GwenControlBase: {"": "Object;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_
   },
   RenderUnder$1: function(skin) {
   },
-  RenderOver$1: function(skin) {
-  },
   OnKeyboardFocus$0: function() {
   },
   OnLostKeyboardFocus$0: function() {
   },
   OnChar$1: function(chr) {
     return false;
+  },
+  InputChar$1: function(chr) {
+    return this.OnChar$1(chr);
   },
   GwenControlBase$1: function($parent) {
     var t1;
@@ -9583,7 +9588,9 @@ GwenControlBase$: function($parent) {
 
 },
 
-GwenControlCanvas: {"": "GwenControlBase;NeedsRedraw,_scale,_backgroundColor,_firstTab,_nextTab,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+GwenMouseEventArgs: {"": "GwenEventArgs;MouseX,MouseY", $isGwenMouseEventArgs: true},
+
+GwenControlCanvas: {"": "GwenControlBase;NeedsRedraw,_scale,_backgroundColor,_firstTab,_nextTab,MouseMovedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
   set$Scale: function(value) {
     var t1;
     if (this._scale === value)
@@ -9597,12 +9604,15 @@ GwenControlCanvas: {"": "GwenControlBase;NeedsRedraw,_scale,_backgroundColor,_fi
     if (t1)
       this.get$Skin()._renderer._scale = this._scale;
     this.OnScaleChanged$0();
-    this.Redraw$0();
+    P.Future_Future(this.get$Redraw(), null);
   },
   Redraw$0: function() {
     this.NeedsRedraw = true;
     X.GwenControlBase.prototype.Redraw$0.call(this);
     this.get$Skin()._renderer.notifyRedrawRequested$0();
+  },
+  get$Redraw: function() {
+    return new P.BoundClosure$0(this, X.GwenControlCanvas.prototype.Redraw$0, null, "Redraw$0");
   },
   GetCanvas$0: function() {
     return this;
@@ -9649,7 +9659,7 @@ GwenControlCanvas: {"": "GwenControlBase;NeedsRedraw,_scale,_backgroundColor,_fi
     X.InputHandler_OnCanvasThink(this);
   },
   Input_MouseMoved$4: function(x, y, dx, dy) {
-    var t1, t2;
+    var t1, bDone, t2;
     if (this.m_Hidden === true)
       return false;
     t1 = new P.Point(x, y);
@@ -9657,19 +9667,19 @@ GwenControlCanvas: {"": "GwenControlBase;NeedsRedraw,_scale,_backgroundColor,_fi
     $.InputHandler_MousePosition = t1;
     X.InputHandler_UpdateHoveredControl(this);
     t1 = $.InputHandler_HoveredControl;
-    if (t1 == null)
-      return false;
-    if (t1 === this)
-      return false;
-    if (t1.GetCanvas$0() !== this)
-      return false;
-    $.InputHandler_HoveredControl.OnMouseMoved$4(x, y, dx, dy);
-    t1 = $.InputHandler_HoveredControl;
-    t2 = t1.get$Skin()._renderer;
-    t1 = t1.m_Cursor;
-    t2 = t2._cvsr;
-    t1 = t1.Name;
-    J.set$cursor$x(t2._canvas.style, t1);
+    bDone = t1 == null;
+    if (!bDone)
+      bDone = t1 === this;
+    if (!(!bDone ? t1.GetCanvas$0() !== this : bDone)) {
+      $.InputHandler_HoveredControl.OnMouseMoved$4(x, y, dx, dy);
+      t1 = $.InputHandler_HoveredControl;
+      t2 = t1.get$Skin()._renderer;
+      t1 = t1.m_Cursor;
+      t2 = t2._cvsr;
+      t1 = t1.Name;
+      J.set$cursor$x(t2._canvas.style, t1);
+    }
+    this.MouseMovedHandler.Invoke$2(this, new X.GwenMouseEventArgs(x, y));
     return true;
   },
   Input_MouseButton$2: function(button, down) {
@@ -9709,7 +9719,7 @@ GwenControlCanvas: {"": "GwenControlBase;NeedsRedraw,_scale,_backgroundColor,_fi
       throw H.ioore(t1, t2);
     if (t1[t2] === true)
       return false;
-    return $.InputHandler_KeyboardFocus.OnChar$1(chr);
+    return $.InputHandler_KeyboardFocus.InputChar$1(chr);
   },
   GwenControlCanvas$1: function(skin) {
     this.SetSkin$1(skin);
@@ -9718,9 +9728,10 @@ GwenControlCanvas: {"": "GwenControlBase;NeedsRedraw,_scale,_backgroundColor,_fi
     this._backgroundColor = X.Color__getDefaultColor(16777215);
     this.m_DrawBackground = false;
   },
+  $isGwenControlCanvas: true,
   static: {
 GwenControlCanvas$: function(skin) {
-  var t1, t2, t3, t4, t5, t6, t7, t8, t9;
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10;
   t1 = P.List_List(null, X.GwenEventHandler);
   H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
   t2 = P.List_List(null, X.GwenEventHandler);
@@ -9735,14 +9746,16 @@ GwenControlCanvas$: function(skin) {
   H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
   t7 = P.List_List(null, X.GwenEventHandler);
   H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
-  t8 = new P.Point(1, 1);
-  H.setRuntimeTypeInfo(t8, [J.JSInt]);
-  t9 = new P.Point(4096, 4096);
+  t8 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+  t9 = new P.Point(1, 1);
   H.setRuntimeTypeInfo(t9, [J.JSInt]);
-  t9 = new X.GwenControlCanvas(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
-  t9.GwenControlBase$1(null);
-  t9.GwenControlCanvas$1(skin);
-  return t9;
+  t10 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t10, [J.JSInt]);
+  t10 = new X.GwenControlCanvas(null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), null, t9, t10, null, null, null);
+  t10.GwenControlBase$1(null);
+  t10.GwenControlCanvas$1(skin);
+  return t10;
 }}
 
 },
@@ -9854,14 +9867,37 @@ GwenKey_getKeyFromValue: function(iKey) {
 
 GwenMargin: {"": "Object;Top,Bottom<,Left,Right<",
   get$hashCode: function(_) {
-    var t1 = J.$mul$n(this.Top, 397);
+    var t1, t2;
+    t1 = J.$mul$n(this.Top, 397);
     if (typeof t1 !== "number")
       throw t1.$xor();
-    return (((((t1 ^ this.Bottom) >>> 0) * 397 ^ this.Left) >>> 0) * 397 ^ this.Right) >>> 0;
+    t2 = this.Left;
+    if (typeof t2 !== "number")
+      throw H.iae(t2);
+    return (((((t1 ^ this.Bottom) >>> 0) * 397 ^ t2) >>> 0) * 397 ^ this.Right) >>> 0;
   },
   static: {
 "": "GwenMargin_Zero,GwenMargin_One,GwenMargin_Two,GwenMargin_Three,GwenMargin_Four,GwenMargin_Five,GwenMargin_Six,GwenMargin_Seven,GwenMargin_Eight,GwenMargin_Nine,GwenMargin_Ten",
 }
+
+},
+
+GwenPackage: {"": "Object;Name,UserData,IsDraggable,DrawControl,HoldOffset",
+  GwenPackage$0: function() {
+    this.Name = null;
+    this.UserData = null;
+    this.IsDraggable = false;
+    this.DrawControl = null;
+    var t1 = new P.Point(0, 0);
+    H.setRuntimeTypeInfo(t1, [null]);
+    this.HoldOffset = t1;
+  },
+  static: {
+GwenPackage$: function() {
+  var t1 = new X.GwenPackage(null, null, null, null, null);
+  t1.GwenPackage$0();
+  return t1;
+}}
 
 },
 
@@ -10110,8 +10146,16 @@ GwenRenderer: {"": "GwenRendererBase;_scale,_cvsr,_gwenCanvas,lastKnownMouseX,la
     }
   },
   renderText$3: function(font, position, text) {
+    var t1, txSize, rectText;
     this._cvsr._strCssFont = H.S(font._size) + "px " + font._facename;
-    this._cvsr.drawTextOnCanvas$3(text, this.translateX$1(position.x), this.translateY$1(position.y));
+    t1 = this._cvsr;
+    txSize = t1.measureText$1(t1, text);
+    t1 = this._renderOffset;
+    rectText = new P.Rectangle(t1.x, t1.y, txSize.x, txSize.y);
+    H.setRuntimeTypeInfo(rectText, [null]);
+    t1 = this._clipRegion;
+    if (t1.intersects$1(t1, rectText))
+      this._cvsr.drawTextOnCanvas$3(text, this.translateX$1(position.x), this.translateY$1(position.y));
   },
   drawLinedRect$1: function(r) {
     var rect, t1, t2, t3, t4, t5;
@@ -10326,16 +10370,10 @@ GwenRenderer: {"": "GwenRendererBase;_scale,_cvsr,_gwenCanvas,lastKnownMouseX,la
     return new P.BoundClosure$0(this, X.GwenRenderer.prototype.notifyRedrawRequested$0, null, "notifyRedrawRequested$0");
   },
   doFrameComplete$1: function(rreq) {
-    var timeCompleted, t1, t2;
-    timeCompleted = rreq.get$timeFinished().difference$1(rreq.timeStarted);
+    rreq.get$timeFinished().difference$1(rreq.timeStarted);
     this._cvsr.removeCompletedRenderRequestsFromQueue$0();
-    t1 = this._bRenderUpdateNeeded;
-    t2 = this._frameNumber;
-    if (t1) {
-      P.print("Frame " + t2 + " took " + H.S(C.JSNumber_methods.$tdiv(timeCompleted._duration, 1000)) + " (" + H.S(this.lastKnownMouseX) + ", " + H.S(this.lastKnownMouseY) + ")");
+    if (this._bRenderUpdateNeeded)
       P.Future_Future(this.get$notifyRedrawRequested(), null);
-    } else
-      P.print("Frame " + t2 + " finished at " + H.S(timeCompleted));
     this._frameNumber = this._frameNumber + 1;
   },
   get$doFrameComplete: function() {
@@ -10502,7 +10540,7 @@ ScrollBar: {"": "GwenControlBase;",
     return false;
   },
   SetScrollAmount$2: function(value, forceUpdate) {
-    if (this._scrollAmount === value && !forceUpdate)
+    if (J.$eq(this._scrollAmount, value) && !forceUpdate)
       return false;
     this._scrollAmount = value;
     this.m_NeedsLayout = true;
@@ -11097,7 +11135,7 @@ TableRow: {"": "GwenControlBase;",
     this.Selected.Invoke$2(this, new X.ItemSelectedEventArgs(this));
   },
   SizeToContents$0: function() {
-    var width, height, i, t1, t2;
+    var width, height, i, t1, t2, contentSize;
     for (width = 0, height = 0, i = 0; i < this._columnCount; ++i) {
       t1 = this._columns;
       if (i >= t1.length)
@@ -11114,7 +11152,15 @@ TableRow: {"": "GwenControlBase;",
       } else {
         if (i >= t2.length)
           throw H.ioore(t2, i);
-        t2[i].SizeToContents$0();
+        t1 = t2[i];
+        contentSize = t1.CalcContentSize$0();
+        t2 = t1.m_Bounds;
+        t1.SetBounds$4(t2.left, t2.top, contentSize.width, contentSize.height);
+        t1 = t1.m_Parent;
+        if (t1 != null) {
+          t1.m_NeedsLayout = true;
+          t1.m_CacheTextureDirty = true;
+        }
       }
       t1 = this._columns;
       if (i >= t1.length)
@@ -11697,14 +11743,67 @@ GwenTexturedSkinBase: {"": "GwenSkinBase;MySkinTextures,_Texture,DefaultFont,_re
       this.MySkinTextures.m_TextBox.Disabled.Draw$2(this._renderer, control.m_RenderBounds);
       return;
     }
-    t1 = $.InputHandler_KeyboardFocus;
+    t1 = J.$eq($.InputHandler_KeyboardFocus, control);
     t2 = control.m_RenderBounds;
     t3 = this.MySkinTextures;
     t4 = this._renderer;
-    if (t1 === control)
+    if (t1)
       t3.m_TextBox.Focus.Draw$2(t4, t2);
     else
       t3.m_TextBox.Normal.Draw$2(t4, t2);
+  },
+  DrawTabButton$3: function(control, active, dir) {
+    if (active) {
+      this.DrawActiveTabButton$2(control, dir);
+      return;
+    }
+    if (dir === C.Pos_8) {
+      this.MySkinTextures.m_Tab.m_Top.Inactive.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (dir === C.Pos_2) {
+      this.MySkinTextures.m_Tab.m_Left.Inactive.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (dir === C.Pos_16) {
+      this.MySkinTextures.m_Tab.m_Bottom.Inactive.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+    if (dir === C.Pos_4) {
+      this.MySkinTextures.m_Tab.m_Right.Inactive.Draw$2(this._renderer, control.m_RenderBounds);
+      return;
+    }
+  },
+  DrawActiveTabButton$2: function(control, dir) {
+    var t1, t2;
+    if (dir === C.Pos_8) {
+      t1 = this.MySkinTextures.m_Tab;
+      t2 = new P.Rectangle(0, 0, 0, 8);
+      H.setRuntimeTypeInfo(t2, [null]);
+      t1.m_Top.Active.Draw$2(this._renderer, control.addToRenderBounds$1(t2));
+      return;
+    }
+    if (dir === C.Pos_2) {
+      t1 = this.MySkinTextures.m_Tab;
+      t2 = new P.Rectangle(0, 0, 8, 0);
+      H.setRuntimeTypeInfo(t2, [null]);
+      t1.m_Left.Active.Draw$2(this._renderer, control.addToRenderBounds$1(t2));
+      return;
+    }
+    if (dir === C.Pos_16) {
+      t1 = this.MySkinTextures.m_Tab;
+      t2 = new P.Rectangle(0, -8, 0, 8);
+      H.setRuntimeTypeInfo(t2, [null]);
+      t1.m_Bottom.Active.Draw$2(this._renderer, control.addToRenderBounds$1(t2));
+      return;
+    }
+    if (dir === C.Pos_4) {
+      t1 = this.MySkinTextures.m_Tab;
+      t2 = new P.Rectangle(-8, 0, 8, 0);
+      H.setRuntimeTypeInfo(t2, [null]);
+      t1.m_Right.Active.Draw$2(this._renderer, control.addToRenderBounds$1(t2));
+      return;
+    }
   },
   DrawWindow$3: function(control, topHeight, inFocus) {
     var t1, t2, t3;
@@ -11990,7 +12089,7 @@ GwenTexturedSkinBase$: function(renderer, textureName) {
   var t1, t2;
   t1 = new X.GwenTexturedSkinBase(null, null, null, renderer, null);
   t2 = new X.CanvasFont(null, null, null, null, renderer);
-  t2.GwenFont$_internal$3(renderer, "Arial", 10);
+  t2.GwenFont$_internal$3(renderer, "Arial", 12);
   t2._data = new P.Object();
   t2._bSmooth = false;
   t1.DefaultFont = t2;
@@ -12058,24 +12157,12 @@ HorizontalScrollBar: {"": "ScrollBar;m_ScrollButton,_bar,_depressed,_scrollAmoun
       this.SetScrollAmount$2(this._scrollAmount, true);
   },
   NudgeLeft$2: function(control, args) {
-    var t1, t2;
-    if (this.m_Disabled !== true) {
-      t1 = this._scrollAmount;
-      t2 = this.get$NudgeAmount();
-      if (typeof t1 !== "number")
-        throw t1.$sub();
-      this.SetScrollAmount$2(t1 - t2, true);
-    }
+    if (this.m_Disabled !== true)
+      this.SetScrollAmount$2(J.$sub$n(this._scrollAmount, this.get$NudgeAmount()), true);
   },
   NudgeRight$2: function(control, args) {
-    var t1, t2;
-    if (this.m_Disabled !== true) {
-      t1 = this._scrollAmount;
-      t2 = this.get$NudgeAmount();
-      if (typeof t1 !== "number")
-        throw t1.$add();
-      this.SetScrollAmount$2(t1 + t2, true);
-    }
+    if (this.m_Disabled !== true)
+      this.SetScrollAmount$2(J.$add$ns(this._scrollAmount, this.get$NudgeAmount()), true);
   },
   get$NudgeAmount: function() {
     var t1, t2;
@@ -12103,24 +12190,14 @@ HorizontalScrollBar: {"": "ScrollBar;m_ScrollButton,_bar,_depressed,_scrollAmoun
       t2 = J.getInterceptor$n(t1);
       if (t2.$lt(t1, this._bar.m_Bounds.left)) {
         $.get$GwenEventArgs_Empty();
-        if (this.m_Disabled !== true) {
-          t1 = this._scrollAmount;
-          t2 = this.get$NudgeAmount();
-          if (typeof t1 !== "number")
-            throw t1.$sub();
-          this.SetScrollAmount$2(t1 - t2, true);
-        }
+        if (this.m_Disabled !== true)
+          this.SetScrollAmount$2(J.$sub$n(this._scrollAmount, this.get$NudgeAmount()), true);
       } else {
         t3 = this._bar.m_Bounds;
         if (t2.$gt(t1, J.$add$ns(t3.left, t3.width))) {
           $.get$GwenEventArgs_Empty();
-          if (this.m_Disabled !== true) {
-            t1 = this._scrollAmount;
-            t2 = this.get$NudgeAmount();
-            if (typeof t1 !== "number")
-              throw t1.$add();
-            this.SetScrollAmount$2(t1 + t2, true);
-          }
+          if (this.m_Disabled !== true)
+            this.SetScrollAmount$2(J.$add$ns(this._scrollAmount, this.get$NudgeAmount()), true);
         }
       }
       this._depressed = false;
@@ -12131,17 +12208,13 @@ HorizontalScrollBar: {"": "ScrollBar;m_ScrollButton,_bar,_depressed,_scrollAmoun
     return J.$div$n(J.$sub$n(this._bar.m_Bounds.left, this.m_Bounds.height), J.$sub$n(J.$sub$n(this.m_Bounds.width, this._bar.m_Bounds.width), J.$mul$n(this.m_Bounds.height, 2)));
   },
   SetScrollAmount$2: function(value, forceUpdate) {
-    var t1, t2, newX;
+    var t1, newX;
     value = X.GwenUtil_Clamp(value, 0, 1);
     if (!X.ScrollBar.prototype.SetScrollAmount$2.call(this, value, forceUpdate))
       return false;
     if (forceUpdate) {
       t1 = this.m_Bounds;
-      t2 = t1.height;
-      t1 = J.$sub$n(J.$sub$n(t1.width, this._bar.m_Bounds.width), J.$mul$n(this.m_Bounds.height, 2));
-      if (typeof t1 !== "number")
-        throw H.iae(t1);
-      newX = J.toInt$0$n(J.$add$ns(t2, value * t1));
+      newX = J.toInt$0$n(J.$add$ns(t1.height, J.$mul$n(value, J.$sub$n(J.$sub$n(t1.width, this._bar.m_Bounds.width), J.$mul$n(this.m_Bounds.height, 2)))));
       t1 = this._bar;
       t1.MoveTo$2(newX, t1.m_Bounds.top);
     }
@@ -12343,7 +12416,7 @@ HorizontalSplitter$: function($parent) {
 
 },
 
-ImagePanel: {"": "GwenControlBase;_texture,_uv,_drawColor,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+ImagePanel: {"": "GwenControlBase;_texture,_uv,_drawColor,_autoSizeToContents,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
   SetUV$4: function(u0, v0, u1, v1) {
     var t1 = this._uv;
     t1[0] = u0;
@@ -12385,7 +12458,9 @@ ImagePanel: {"": "GwenControlBase;_texture,_uv,_drawColor,m_Disposed,m_Parent,m_
     return true;
   },
   ImagePanel$1: function($parent) {
-    var t1 = P.List_List(4, J.JSDouble);
+    var t1;
+    this._autoSizeToContents = true;
+    t1 = P.List_List(4, J.JSDouble);
     H.setRuntimeTypeInfo(t1, [J.JSDouble]);
     this._uv = t1;
     this.SetUV$4(0, 0, 1, 1);
@@ -12414,7 +12489,7 @@ ImagePanel$: function($parent) {
   H.setRuntimeTypeInfo(t8, [J.JSInt]);
   t9 = new P.Point(4096, 4096);
   H.setRuntimeTypeInfo(t9, [J.JSInt]);
-  t9 = new X.ImagePanel(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
+  t9 = new X.ImagePanel(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
   t9.GwenControlBase$1($parent);
   t9.ImagePanel$1($parent);
   return t9;
@@ -12510,7 +12585,7 @@ Label: {"": "GwenControlBase;_text,_align,_textPadding,_autoSizeToContents,_mous
     H.setRuntimeTypeInfo(t1, [null]);
     return t1;
   },
-  SizeToContents$0: function() {
+  CalcContentSize$0: function() {
     var t1, t2, t3, t4;
     t1 = this._text;
     t2 = J.$add$ns(this.get$TextPadding().Left, this.m_Padding.Left);
@@ -12518,10 +12593,15 @@ Label: {"": "GwenControlBase;_text,_align,_textPadding,_autoSizeToContents,_mous
     t4 = t1.m_Bounds;
     t1.SetBounds$4(t2, t3, t4.width, t4.height);
     this._text.SizeToContents$0();
-    t4 = J.$add$ns(J.$add$ns(J.$add$ns(J.$add$ns(this._text.m_Bounds.width, this.m_Padding.Left), this.m_Padding.Right), this.get$TextPadding().Left), this.get$TextPadding().Right);
-    t3 = J.$add$ns(J.$add$ns(J.$add$ns(J.$add$ns(this._text.m_Bounds.height, this.m_Padding.Top), this.m_Padding.Bottom), this.get$TextPadding().Top), this.get$TextPadding().Bottom);
-    t2 = this.m_Bounds;
-    this.SetBounds$4(t2.left, t2.top, t4, t3);
+    t4 = new P.Rectangle(0, 0, J.$add$ns(J.$add$ns(J.$add$ns(J.$add$ns(this._text.m_Bounds.width, this.m_Padding.Left), this.m_Padding.Right), this.get$TextPadding().Left), this.get$TextPadding().Right), J.$add$ns(J.$add$ns(J.$add$ns(J.$add$ns(this._text.m_Bounds.height, this.m_Padding.Top), this.m_Padding.Bottom), this.get$TextPadding().Top), this.get$TextPadding().Bottom));
+    H.setRuntimeTypeInfo(t4, [null]);
+    return t4;
+  },
+  SizeToContents$0: function() {
+    var contentSize, t1;
+    contentSize = this.CalcContentSize$0();
+    t1 = this.m_Bounds;
+    this.SetBounds$4(t1.left, t1.top, contentSize.width, contentSize.height);
     t1 = this.m_Parent;
     if (t1 != null) {
       t1.m_NeedsLayout = true;
@@ -12581,6 +12661,7 @@ Label: {"": "GwenControlBase;_text,_align,_textPadding,_autoSizeToContents,_mous
     t6.HandlerRemovedNotifyHandler = this._mouseEventHandlerAddedHandler;
     this.m_MouseInputEnabled = false;
   },
+  $isLabel: true,
   static: {
 Label$: function($parent) {
   var t1, t2, t3, t4, t5, t6, t7, t8, t9;
@@ -12754,7 +12835,7 @@ LabeledRadioButton: {"": "GwenControlBase;_radioButton,_label,m_Disposed,m_Paren
     X.GwenControlBase.prototype.Layout$1.call(this, skin);
   },
   RenderFocus$1: function(skin) {
-    if ($.InputHandler_KeyboardFocus !== this)
+    if (!J.$eq($.InputHandler_KeyboardFocus, this))
       return;
     if (this.m_Tabable !== true)
       return;
@@ -13429,6 +13510,100 @@ MenuStrip$: function($parent) {
   t9.Menu$1($parent);
   t9.MenuStrip$1($parent);
   return t9;
+}}
+
+},
+
+MessageBox: {"": "WindowControl;_button,_label,Dismissed,_titleBar,_title,_closeButton,DeleteOnClose,_modal,ClampMovement,_resizer,Resized,_onResizeHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  CloseButtonPressed$2: function(control, args) {
+  },
+  get$CloseButtonPressed: function() {
+    return new X.BoundClosure$20(this, X.MessageBox.prototype.CloseButtonPressed$2, null, "CloseButtonPressed$2");
+  },
+  DismissedHandler$2: function(control, args) {
+    this.Dismissed.Invoke$2(this, args);
+  },
+  get$DismissedHandler: function() {
+    return new X.BoundClosure$20(this, X.MessageBox.prototype.DismissedHandler$2, null, "DismissedHandler$2");
+  },
+  Layout$1: function(skin) {
+    var t1, t2, t3, t4;
+    X.GwenControlBase.prototype.Layout$1.call(this, skin);
+    t1 = this._button;
+    t2 = this._label;
+    t3 = t2.m_Bounds;
+    t4 = t3.left;
+    t2 = J.$add$ns(J.$add$ns(J.$add$ns(t3.top, t3.height), t2.m_Margin.Bottom), 10);
+    t3 = t1.m_Bounds;
+    t1.SetBounds$4(t4, t2, t3.width, t3.height);
+    X.Align_CenterHorizontally(this._button);
+    this.m_InnerPanel.SizeToChildren$0();
+    t3 = this.m_InnerPanel;
+    t2 = J.$add$ns(t3.m_Bounds.height, 10);
+    t4 = t3.m_Bounds;
+    t1 = t4.width;
+    t3.SetBounds$4(t4.left, t4.top, t1, t2);
+    this.SizeToChildren$0();
+  },
+  Render$1: function(skin) {
+    X.WindowControl.prototype.Render$1.call(this, skin);
+  },
+  MessageBox$3: function($parent, text, caption) {
+    var t1, t2;
+    this.DeleteOnClose = true;
+    this._label = X.Label$(this.m_InnerPanel);
+    this._label.SetText$1(text);
+    this._label.set$Margin($.get$GwenMargin_Five());
+    this._label.set$Dock(C.Pos_8);
+    t1 = this._label;
+    t1._align = C.Pos_96;
+    t1.m_NeedsLayout = true;
+    t1.m_CacheTextureDirty = true;
+    this._button = X.Button$(this.m_InnerPanel);
+    this._button.SetText$1("OK");
+    t1 = this._button.Clicked;
+    t1.add$1(t1, new X.GwenControlEventHandler(this.get$CloseButtonPressed()));
+    t1 = this._button.Clicked;
+    t1.add$1(t1, new X.GwenControlEventHandler(this.get$DismissedHandler()));
+    this._button.set$Margin($.get$GwenMargin_Five());
+    t1 = this._button;
+    t2 = t1.m_Bounds;
+    t1.SetBounds$4(t2.left, t2.top, 50, 20);
+    X.Align_Center(this);
+  },
+  static: {
+MessageBox$: function($parent, text, caption) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(10, X.Resizer);
+  H.setRuntimeTypeInfo(t3, [X.Resizer]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+  t9 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t9, [X.GwenEventHandler]);
+  t10 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t10, [X.GwenEventHandler]);
+  t11 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t11, [J.JSInt]);
+  t12 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t12, [J.JSInt]);
+  t12 = new X.MessageBox(null, null, new X.GwenEventHandlerList(t1, null, null), null, null, null, null, null, null, t3, new X.GwenEventHandlerList(t2, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), new X.GwenEventHandlerList(t9, null, null), new X.GwenEventHandlerList(t10, null, null), null, t11, t12, null, null, null);
+  t12.GwenControlBase$1($parent);
+  t12.ResizableControl$1($parent);
+  t12.WindowControl$3($parent, "", false);
+  t12.MessageBox$3($parent, text, caption);
+  return t12;
 }}
 
 },
@@ -14424,6 +14599,612 @@ SplitterBar: {"": "Dragger;_held,_holdPos,_base,Dragged,m_Disposed,m_Parent,m_Ac
   }
 },
 
+StatusBar: {"": "Label;_text,_align,_textPadding,_autoSizeToContents,_mouseEventHandlerAddedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  AddControl$2: function(control, right) {
+    control.set$Parent(this);
+    control.set$Dock(right ? C.Pos_4 : C.Pos_2);
+  },
+  Render$1: function(skin) {
+    skin.MySkinTextures.StatusBar.Draw$2(skin._renderer, this.m_RenderBounds);
+  },
+  StatusBar$1: function($parent) {
+    var t1, t2;
+    this._autoSizeToContents = false;
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+    t1 = this.m_Bounds;
+    t2 = t1.width;
+    this.SetBounds$4(t1.left, t1.top, t2, 22);
+    this.set$Dock(C.Pos_16);
+    this.set$Padding($.get$GwenPadding_Two());
+    this._align = new X.Pos((C.Pos_2.value | C.Pos_32.value) >>> 0);
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+  },
+  static: {
+StatusBar$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t8, [J.JSInt]);
+  t9 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t9, [J.JSInt]);
+  t9 = new X.StatusBar(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
+  t9.GwenControlBase$1($parent);
+  t9.Label$1($parent);
+  t9.StatusBar$1($parent);
+  return t9;
+}}
+
+},
+
+TabButton: {"": "Button;Page,_Control,_depressed,IsToggle,_toggleStatus,_centerImage,_image,Pressed,Released,Toggled,ToggledOn,ToggledOff,_text,_align,_textPadding,_autoSizeToContents,_mouseEventHandlerAddedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  set$MyTabControl: function(value) {
+    var t1 = this._Control;
+    if (value === t1)
+      return;
+    if (t1 != null)
+      t1.OnLoseTab$1(this);
+    this._Control = value;
+  },
+  get$ShouldClip: function() {
+    return false;
+  },
+  Render$1: function(skin) {
+    var t1 = this.Page;
+    t1 = t1 != null && t1.get$IsVisible();
+    skin.DrawTabButton$3(this, t1, this._Control._TabStrip.m_Dock);
+  },
+  OnKeyDown$1: function(down) {
+    this.OnKeyRight$1(down);
+    return true;
+  },
+  OnKeyUp$1: function(down) {
+    this.OnKeyLeft$1(down);
+    return true;
+  },
+  OnKeyRight$1: function(down) {
+    var count, t1, t2, nextTab;
+    if (down) {
+      count = this.m_Parent.get$Children().length;
+      t1 = this.m_Parent.get$Children();
+      t1 = H.Arrays_indexOf(t1, this, 0, t1.length) + 1;
+      if (t1 < count) {
+        t2 = this.m_Parent.get$Children();
+        if (t1 >>> 0 !== t1 || t1 >= t2.length)
+          throw H.ioore(t2, t1);
+        nextTab = t2[t1];
+        this._Control.OnTabPressed$2(nextTab, $.get$GwenEventArgs_Empty());
+        $.InputHandler_KeyboardFocus = nextTab;
+      }
+    }
+    return true;
+  },
+  OnKeyLeft$1: function(down) {
+    var t1, t2, prevTab;
+    if (down) {
+      this.m_Parent.get$Children();
+      t1 = this.m_Parent.get$Children();
+      t1 = H.Arrays_indexOf(t1, this, 0, t1.length) - 1;
+      if (t1 >= 0) {
+        t2 = this.m_Parent.get$Children();
+        if (t1 >>> 0 !== t1 || t1 >= t2.length)
+          throw H.ioore(t2, t1);
+        prevTab = t2[t1];
+        this._Control.OnTabPressed$2(prevTab, $.get$GwenEventArgs_Empty());
+        $.InputHandler_KeyboardFocus = prevTab;
+      }
+    }
+    return true;
+  },
+  UpdateColors$0: function() {
+    var t1 = this.Page;
+    if (t1 != null && t1.get$IsVisible()) {
+      if (this.m_Disabled === true) {
+        t1 = this.get$Skin().SkinColors.m_Tab.m_Active.Disabled;
+        this._text.TextColor = t1;
+        return;
+      }
+      if (this._depressed) {
+        t1 = this.get$Skin().SkinColors.m_Tab.m_Active.Down;
+        this._text.TextColor = t1;
+        return;
+      }
+      if ($.InputHandler_HoveredControl === this) {
+        t1 = this.get$Skin().SkinColors.m_Tab.m_Active.Hover;
+        this._text.TextColor = t1;
+        return;
+      }
+      t1 = this.get$Skin().SkinColors.m_Tab.m_Active.Normal;
+      this._text.TextColor = t1;
+    }
+    if (this.m_Disabled === true) {
+      t1 = this.get$Skin().SkinColors.m_Tab.m_Inactive.Disabled;
+      this._text.TextColor = t1;
+      return;
+    }
+    if (this._depressed) {
+      t1 = this.get$Skin().SkinColors.m_Tab.m_Inactive.Down;
+      this._text.TextColor = t1;
+      return;
+    }
+    if ($.InputHandler_HoveredControl === this) {
+      t1 = this.get$Skin().SkinColors.m_Tab.m_Inactive.Hover;
+      this._text.TextColor = t1;
+      return;
+    }
+    t1 = this.get$Skin().SkinColors.m_Tab.m_Inactive.Normal;
+    this._text.TextColor = t1;
+  },
+  TabButton$1: function($parent) {
+    var t1;
+    this.DragAndDrop_SetPackage$2(true, "TabButtonMove");
+    this._align = new X.Pos((C.Pos_8.value | C.Pos_2.value) >>> 0);
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+    this._textPadding = new X.GwenPadding(3, 3, 5, 3);
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+    t1 = this.m_Parent;
+    if (t1 != null) {
+      t1.m_NeedsLayout = true;
+      t1.m_CacheTextureDirty = true;
+    }
+    this.set$Padding($.get$GwenPadding_Two());
+    this.m_KeyboardInputEnabled = true;
+  },
+  $isTabButton: true,
+  static: {
+TabButton$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+  t9 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t9, [X.GwenEventHandler]);
+  t10 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t10, [X.GwenEventHandler]);
+  t11 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t11, [X.GwenEventHandler]);
+  t12 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t12, [X.GwenEventHandler]);
+  t13 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t13, [J.JSInt]);
+  t14 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t14, [J.JSInt]);
+  t14 = new X.TabButton(null, null, false, false, false, false, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), new X.GwenEventHandlerList(t9, null, null), new X.GwenEventHandlerList(t10, null, null), new X.GwenEventHandlerList(t11, null, null), new X.GwenEventHandlerList(t12, null, null), null, t13, t14, null, null, null);
+  t14.GwenControlBase$1($parent);
+  t14.Label$1($parent);
+  t14.Button$1($parent);
+  t14.TabButton$1($parent);
+  return t14;
+}}
+
+},
+
+TabControlScrollPressedEventHandler: {"": "GwenEventHandler;_direction,_tabControl",
+  Invoke$2: function(control, args) {
+    var t1;
+    switch (this._direction) {
+      case C.Pos_2:
+        t1 = this._tabControl;
+        t1._ScrollOffset = J.$sub$n(t1._ScrollOffset, 120);
+        break;
+      case C.Pos_4:
+        t1 = this._tabControl;
+        t1._ScrollOffset = J.$add$ns(t1._ScrollOffset, 120);
+        break;
+      default:
+        throw H.wrapException(P.StateError$("TabControlScrollPressedEventHandler cannot accept any Pos but left and right"));
+    }
+  }
+},
+
+TabControlOnTabHandler: {"": "GwenEventHandler;_selector,_tabControl",
+  Invoke$2: function(control, args) {
+    switch (this._selector) {
+      case 1:
+        this._tabControl.OnTabPressed$2(control, args);
+        break;
+      default:
+        throw H.wrapException(P.StateError$("TabeControlOnTabHandler cannot have any _selector but 0 or "));
+    }
+  },
+  static: {
+"": "TabControlOnTabHandler_ON_PRESSED,TabControlOnTabHandler_ON_LOSE_TAB",
+}
+
+},
+
+TabControl: {"": "GwenControlBase;_TabStrip,_scroll,_CurrentButton,_ScrollOffset,_onTabPressedHandler,TabAdded,TabRemoved,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  AddPage$2: function(label, page) {
+    var button;
+    page = X.GwenControlBase$(this);
+    button = X.TabButton$(this._TabStrip);
+    button.SetText$1(label);
+    button.Page = page;
+    button.m_Tabable = false;
+    this.AddPageButton$1(button);
+    return button;
+  },
+  AddPage$1: function(label) {
+    return this.AddPage$2(label, null);
+  },
+  AddPageButton$1: function(button) {
+    var page, t1, t2;
+    page = button.Page;
+    page.set$Parent(this);
+    page.set$IsHidden(true);
+    page.set$Margin(new X.GwenMargin(6, 6, 6, 6));
+    page.set$Dock(C.Pos_128);
+    button.set$Parent(this._TabStrip);
+    button.set$Dock(C.Pos_2);
+    button.SizeToContents$0();
+    button._autoSizeToContents = false;
+    button.m_NeedsLayout = true;
+    button.m_CacheTextureDirty = true;
+    t1 = button._Control;
+    if (t1 != null) {
+      t2 = button.Clicked;
+      t2.remove$1(t2, t1._onTabPressedHandler);
+    }
+    button.set$MyTabControl(this);
+    this._onTabPressedHandler = new X.TabControlOnTabHandler(1, this);
+    t1 = button.Clicked;
+    t1.add$1(t1, this._onTabPressedHandler);
+    if (null == this._CurrentButton)
+      button.OnClicked$2(0, 0);
+    this.TabAdded.Invoke$2(this, $.get$GwenEventArgs_Empty());
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+  },
+  OnTabPressed$2: function(control, args) {
+    var page, t1, page2;
+    H.interceptedTypeCast(control, "$isTabButton");
+    if (null == control)
+      return;
+    page = control.Page;
+    if (null == page)
+      return;
+    t1 = this._CurrentButton;
+    if (t1 == null ? control == null : t1 === control)
+      return;
+    if (null != t1) {
+      page2 = t1.Page;
+      if (page2 != null)
+        page2.set$IsHidden(true);
+      this._CurrentButton.Redraw$0();
+      this._CurrentButton = null;
+    }
+    this._CurrentButton = control;
+    page.set$IsHidden(false);
+    t1 = this._TabStrip;
+    t1.m_NeedsLayout = true;
+    t1.m_CacheTextureDirty = true;
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+  },
+  PostLayout$1: function(skin) {
+    X.GwenControlBase.prototype.PostLayout$1.call(this, skin);
+    this.HandleOverflow$0();
+  },
+  OnLoseTab$1: function(button) {
+    if (this._CurrentButton === button)
+      this._CurrentButton = null;
+    this.TabRemoved.Invoke$2(this, $.get$GwenEventArgs_Empty());
+    this.m_NeedsLayout = true;
+    this.m_CacheTextureDirty = true;
+  },
+  HandleOverflow$0: function() {
+    var t1, t2, needed, t3, t4;
+    t1 = this._TabStrip.GetChildrenSize$0().x;
+    t2 = J.getInterceptor$n(t1);
+    needed = t2.$gt(t1, this.m_Bounds.width) && this._TabStrip.m_Dock === C.Pos_8;
+    t3 = this._scroll;
+    t3.length;
+    t4 = !needed;
+    t3[0].set$IsHidden(t4);
+    t3 = this._scroll;
+    t3.length;
+    t3[1].set$IsHidden(t4);
+    if (t4)
+      return;
+    this._ScrollOffset = X.GwenUtil_Clamp(this._ScrollOffset, 0, J.$add$ns(t2.$sub(t1, this.m_Bounds.width), 32));
+    this._TabStrip.set$Margin(new X.GwenMargin(0, 0, J.$mul$n(this._ScrollOffset, -1), 0));
+    t1 = this._scroll;
+    t1.length;
+    t1 = t1[0];
+    t2 = J.$sub$n(this.m_Bounds.width, 30);
+    t3 = t1.m_Bounds;
+    t1.SetBounds$4(t2, 5, t3.width, t3.height);
+    t3 = this._scroll;
+    t3.length;
+    t2 = t3[1];
+    t3 = t3[0];
+    t1 = t3.m_Bounds;
+    t3 = J.$add$ns(J.$add$ns(t1.left, t1.width), t3.m_Margin.Right);
+    t1 = t2.m_Bounds;
+    t2.SetBounds$4(t3, 5, t1.width, t1.height);
+  },
+  TabControl$1: function($parent) {
+    var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15;
+    t1 = P.List_List(2, X.ScrollBarButton);
+    H.setRuntimeTypeInfo(t1, [X.ScrollBarButton]);
+    this._scroll = t1;
+    this._ScrollOffset = 0;
+    t1 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+    t2 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+    t3 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+    t4 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+    t5 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+    t6 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+    t7 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+    t8 = new P.Point(1, 1);
+    H.setRuntimeTypeInfo(t8, [J.JSInt]);
+    t9 = new P.Point(4096, 4096);
+    H.setRuntimeTypeInfo(t9, [J.JSInt]);
+    t9 = new X.TabStrip(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
+    t9.GwenControlBase$1(this);
+    t9.AllowReorder = false;
+    this._TabStrip = t9;
+    this._TabStrip.set$StripPosition(C.Pos_8);
+    t9 = this._scroll;
+    t8 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+    t7 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+    t6 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+    t5 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+    t4 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+    t3 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+    t2 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+    t1 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+    t10 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t10, [X.GwenEventHandler]);
+    t11 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t11, [X.GwenEventHandler]);
+    t12 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t12, [X.GwenEventHandler]);
+    t13 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t13, [X.GwenEventHandler]);
+    t14 = new P.Point(1, 1);
+    H.setRuntimeTypeInfo(t14, [J.JSInt]);
+    t15 = new P.Point(4096, 4096);
+    H.setRuntimeTypeInfo(t15, [J.JSInt]);
+    t15 = new X.ScrollBarButton(null, false, false, false, false, null, new X.GwenEventHandlerList(t8, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t4, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t10, null, null), new X.GwenEventHandlerList(t11, null, null), new X.GwenEventHandlerList(t12, null, null), new X.GwenEventHandlerList(t13, null, null), null, t14, t15, null, null, null);
+    t15.GwenControlBase$1(this);
+    t15.Label$1(this);
+    t15.Button$1(this);
+    t15._Direction = C.Pos_8;
+    t9.length;
+    t9[0] = t15;
+    t15 = this._scroll;
+    t15.length;
+    t15[0]._Direction = C.Pos_2;
+    t15 = this._scroll;
+    t15.length;
+    t15 = t15[0].Clicked;
+    t15.add$1(t15, new X.TabControlScrollPressedEventHandler(C.Pos_2, this));
+    t15 = this._scroll;
+    t15.length;
+    t15 = t15[0];
+    t9 = t15.m_Bounds;
+    t15.SetBounds$4(t9.left, t9.top, 14, 16);
+    t9 = this._scroll;
+    t15 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t15, [X.GwenEventHandler]);
+    t14 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t14, [X.GwenEventHandler]);
+    t13 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t13, [X.GwenEventHandler]);
+    t12 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t12, [X.GwenEventHandler]);
+    t11 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t11, [X.GwenEventHandler]);
+    t10 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t10, [X.GwenEventHandler]);
+    t1 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+    t2 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+    t3 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+    t4 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+    t5 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+    t6 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+    t7 = new P.Point(1, 1);
+    H.setRuntimeTypeInfo(t7, [J.JSInt]);
+    t8 = new P.Point(4096, 4096);
+    H.setRuntimeTypeInfo(t8, [J.JSInt]);
+    t8 = new X.ScrollBarButton(null, false, false, false, false, null, new X.GwenEventHandlerList(t15, null, null), new X.GwenEventHandlerList(t14, null, null), new X.GwenEventHandlerList(t13, null, null), new X.GwenEventHandlerList(t12, null, null), new X.GwenEventHandlerList(t11, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t10, null, null), new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), null, t7, t8, null, null, null);
+    t8.GwenControlBase$1(this);
+    t8.Label$1(this);
+    t8.Button$1(this);
+    t8._Direction = C.Pos_8;
+    t9.length;
+    t9[1] = t8;
+    t8 = this._scroll;
+    t8.length;
+    t8[1]._Direction = C.Pos_4;
+    t8 = this._scroll;
+    t8.length;
+    t8 = t8[1].Clicked;
+    t8.add$1(t8, new X.TabControlScrollPressedEventHandler(C.Pos_4, this));
+    t8 = this._scroll;
+    t8.length;
+    t8 = t8[1];
+    t9 = t8.m_Bounds;
+    t8.SetBounds$4(t9.left, t9.top, 14, 16);
+    t9 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t9, [X.GwenEventHandler]);
+    t8 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+    t7 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+    t6 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+    t5 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+    t4 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+    t3 = P.List_List(null, X.GwenEventHandler);
+    H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+    t2 = new P.Point(1, 1);
+    H.setRuntimeTypeInfo(t2, [J.JSInt]);
+    t1 = new P.Point(4096, 4096);
+    H.setRuntimeTypeInfo(t1, [J.JSInt]);
+    t1 = new X.TabControlInner(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t9, null, null), new X.GwenEventHandlerList(t8, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t3, null, null), null, t2, t1, null, null, null);
+    t1.GwenControlBase$1(this);
+    this.m_InnerPanel = t1;
+    this.m_InnerPanel.set$Dock(C.Pos_128);
+    this.m_InnerPanel.SendToBack$0();
+    this.m_Tabable = false;
+  },
+  static: {
+TabControl$: function($parent) {
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
+  t2 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
+  t3 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t3, [X.GwenEventHandler]);
+  t4 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t4, [X.GwenEventHandler]);
+  t5 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t5, [X.GwenEventHandler]);
+  t6 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
+  t7 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
+  t8 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
+  t9 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t9, [X.GwenEventHandler]);
+  t10 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t10, [J.JSInt]);
+  t11 = new P.Point(4096, 4096);
+  H.setRuntimeTypeInfo(t11, [J.JSInt]);
+  t11 = new X.TabControl(null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), new X.GwenEventHandlerList(t9, null, null), null, t10, t11, null, null, null);
+  t11.GwenControlBase$1($parent);
+  t11.TabControl$1($parent);
+  return t11;
+}}
+
+},
+
+TabControlInner: {"": "GwenControlBase;m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  Render$1: function(skin) {
+    skin.MySkinTextures.m_Tab.Control.Draw$2(skin._renderer, this.m_RenderBounds);
+  }
+},
+
+TabStrip: {"": "GwenControlBase;_TabDragControl,AllowReorder,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  get$ShouldClip: function() {
+    return false;
+  },
+  set$StripPosition: function(value) {
+    this.set$Dock(value);
+    if (this.m_Dock === C.Pos_8)
+      this.set$Padding(new X.GwenPadding(0, 0, 5, 0));
+    if (this.m_Dock === C.Pos_2)
+      this.set$Padding(new X.GwenPadding(5, 0, 0, 0));
+    if (this.m_Dock === C.Pos_16)
+      this.set$Padding(new X.GwenPadding(0, 0, 5, 0));
+    if (this.m_Dock === C.Pos_4)
+      this.set$Padding(new X.GwenPadding(5, 0, 0, 0));
+  },
+  Layout$1: function(skin) {
+    var largestTab, t1, num, child, notFirst, left, $top, t2;
+    largestTab = new P.Point(5, 5);
+    H.setRuntimeTypeInfo(largestTab, [null]);
+    for (t1 = this.get$Children(), t1 = new H.ListIterator(t1, t1.length, 0, null), num = 0; t1.moveNext$0();) {
+      child = H.interceptedTypeCast(t1._current, "$isTabButton");
+      if (null == child)
+        continue;
+      child.SizeToContents$0();
+      notFirst = num > 0 ? -1 : 0;
+      if (this.m_Dock === C.Pos_8) {
+        child.set$Dock(C.Pos_2);
+        left = notFirst;
+      } else
+        left = 0;
+      if (this.m_Dock === C.Pos_2) {
+        child.set$Dock(C.Pos_8);
+        $top = notFirst;
+      } else
+        $top = 0;
+      if (this.m_Dock === C.Pos_4) {
+        child.set$Dock(C.Pos_8);
+        $top = notFirst;
+      }
+      if (this.m_Dock === C.Pos_16) {
+        child.set$Dock(C.Pos_2);
+        left = notFirst;
+      }
+      largestTab = new P.Point(P.max(largestTab.x, child.m_Bounds.width), P.max(largestTab.y, child.m_Bounds.height));
+      largestTab.$builtinTypeInfo = [null];
+      child.set$Margin(new X.GwenMargin($top, 0, left, 0));
+      ++num;
+    }
+    t1 = this.m_Dock;
+    if (t1 === C.Pos_8 || t1 === C.Pos_16) {
+      t1 = this.m_Bounds;
+      t2 = t1.width;
+      this.SetBounds$4(t1.left, t1.top, t2, largestTab.y);
+    }
+    t1 = this.m_Dock;
+    if (t1 === C.Pos_2 || t1 === C.Pos_4) {
+      t1 = this.m_Bounds;
+      t2 = t1.height;
+      this.SetBounds$4(t1.left, t1.top, largestTab.x, t2);
+    }
+    X.GwenControlBase.prototype.Layout$1.call(this, skin);
+  }
+},
+
 TextBox: {"": "Label;_selectAll,_cursorPos,_cursorEnd,m_SelectionBounds,m_CaretBounds,m_LastInputTime,TextChanged,SubmitPressed,_text,_align,_textPadding,_autoSizeToContents,_mouseEventHandlerAddedHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
   get$AccelOnlyFocus: function() {
     return true;
@@ -14477,7 +15258,7 @@ TextBox: {"": "Label;_selectAll,_cursorPos,_cursorEnd,m_SelectionBounds,m_CaretB
     X.GwenControlBase.prototype.Render$1.call(this, skin);
     if (this.m_DrawBackground === true)
       skin.DrawTextBox$1(this);
-    if ($.InputHandler_KeyboardFocus !== this)
+    if (!J.$eq($.InputHandler_KeyboardFocus, this))
       return;
     if (!J.$eq(this._cursorPos, this._cursorEnd)) {
       t1 = skin._renderer;
@@ -14528,7 +15309,7 @@ TextBox: {"": "Label;_selectAll,_cursorPos,_cursorEnd,m_SelectionBounds,m_CaretB
       return true;
     this.OnReturn$0();
     this.OnKeyTab$1(true);
-    if ($.InputHandler_KeyboardFocus === this)
+    if (J.$eq($.InputHandler_KeyboardFocus, this))
       this.Blur$0();
     return true;
   },
@@ -14542,6 +15323,7 @@ TextBox: {"": "Label;_selectAll,_cursorPos,_cursorEnd,m_SelectionBounds,m_CaretB
     }
     if (J.$eq(this._cursorPos, 0))
       return true;
+    P.print("textbox.OnKeyBackspace curpos: " + H.S(this._cursorPos));
     this.DeleteText$2(J.$sub$n(this._cursorPos, 1), 1);
     return true;
   },
@@ -14619,10 +15401,20 @@ TextBox: {"": "Label;_selectAll,_cursorPos,_cursorEnd,m_SelectionBounds,m_CaretB
     return true;
   },
   DeleteText$2: function(startPos, $length) {
-    this.SetText$1(X.TextBox_removeFromString(X.Label.prototype.get$Text.call(this), startPos, $length));
-    if (J.$gt$n(this._cursorPos, startPos))
+    var str = X.Label.prototype.get$Text.call(this);
+    P.print("textbox.DeleteText('" + str + "', " + H.S(startPos) + ", " + H.S($length) + ")");
+    str = X.TextBox_removeFromString(str, startPos, $length);
+    P.print("Result: " + str);
+    this.SetText$1(str);
+    P.print("_cursorPos: " + H.S(this._cursorPos) + ", startPos: " + H.S(startPos));
+    if (J.$gt$n(this._cursorPos, startPos)) {
+      this._cursorEnd = J.$sub$n(this._cursorPos, $length);
       this.set$CursorPos(J.$sub$n(this._cursorPos, $length));
+      P.print(" Setting _cursorPos to " + H.S(this._cursorPos));
+    }
+    P.print(" Settinng end to " + H.S(this._cursorPos));
     this.set$CursorEnd(this._cursorPos);
+    this.RefreshCursorBounds$0();
   },
   EraseSelection$0: function() {
     var start = P.min(this._cursorPos, this._cursorEnd);
@@ -14785,8 +15577,8 @@ TextBox_removeFromString: function(orig, startPos, $length) {
   if (t2.$le(startPos, 0))
     return J.substring$1$s(orig, $length);
   if (J.$ge$n(t2.$add(startPos, $length), t1))
-    return J.substring$1$s(orig, startPos);
-  return J.getInterceptor$s(orig).substring$2(orig, 0, startPos) + C.JSString_methods.substring$1(orig, t2.$add(startPos, $length));
+    return J.substring$2$s(orig, 0, startPos);
+  return J.getInterceptor$s(orig).substring$2(orig, 0, startPos) + C.JSString_methods.substring$2(orig, t2.$add(startPos, $length), t1 - 1);
 }}
 
 },
@@ -15381,24 +16173,12 @@ VerticalScrollBar: {"": "ScrollBar;m_ScrollButton,_bar,_depressed,_scrollAmount,
       this.SetScrollAmount$2(this._scrollAmount, true);
   },
   NudgeUp$2: function(control, args) {
-    var t1, t2;
-    if (this.m_Disabled !== true) {
-      t1 = this._scrollAmount;
-      t2 = this.get$NudgeAmount();
-      if (typeof t1 !== "number")
-        throw t1.$sub();
-      this.SetScrollAmount$2(t1 - t2, true);
-    }
+    if (this.m_Disabled !== true)
+      this.SetScrollAmount$2(J.$sub$n(this._scrollAmount, this.get$NudgeAmount()), true);
   },
   NudgeDown$2: function(control, args) {
-    var t1, t2;
-    if (this.m_Disabled !== true) {
-      t1 = this._scrollAmount;
-      t2 = this.get$NudgeAmount();
-      if (typeof t1 !== "number")
-        throw t1.$add();
-      this.SetScrollAmount$2(t1 + t2, true);
-    }
+    if (this.m_Disabled !== true)
+      this.SetScrollAmount$2(J.$add$ns(this._scrollAmount, this.get$NudgeAmount()), true);
   },
   get$NudgeAmount: function() {
     var t1, t2;
@@ -15426,24 +16206,14 @@ VerticalScrollBar: {"": "ScrollBar;m_ScrollButton,_bar,_depressed,_scrollAmount,
       t2 = J.getInterceptor$n(t1);
       if (t2.$lt(t1, this._bar.m_Bounds.top)) {
         $.get$GwenEventArgs_Empty();
-        if (this.m_Disabled !== true) {
-          t1 = this._scrollAmount;
-          t2 = this.get$NudgeAmount();
-          if (typeof t1 !== "number")
-            throw t1.$sub();
-          this.SetScrollAmount$2(t1 - t2, true);
-        }
+        if (this.m_Disabled !== true)
+          this.SetScrollAmount$2(J.$sub$n(this._scrollAmount, this.get$NudgeAmount()), true);
       } else {
         t3 = this._bar.m_Bounds;
         if (t2.$gt(t1, J.$add$ns(t3.top, t3.height))) {
           $.get$GwenEventArgs_Empty();
-          if (this.m_Disabled !== true) {
-            t1 = this._scrollAmount;
-            t2 = this.get$NudgeAmount();
-            if (typeof t1 !== "number")
-              throw t1.$add();
-            this.SetScrollAmount$2(t1 + t2, true);
-          }
+          if (this.m_Disabled !== true)
+            this.SetScrollAmount$2(J.$add$ns(this._scrollAmount, this.get$NudgeAmount()), true);
         }
       }
       this._depressed = false;
@@ -15454,17 +16224,13 @@ VerticalScrollBar: {"": "ScrollBar;m_ScrollButton,_bar,_depressed,_scrollAmount,
     return J.$div$n(J.$sub$n(this._bar.m_Bounds.top, this.m_Bounds.width), J.$sub$n(J.$sub$n(this.m_Bounds.height, this._bar.m_Bounds.height), J.$mul$n(this.m_Bounds.width, 2)));
   },
   SetScrollAmount$2: function(value, forceUpdate) {
-    var t1, t2, newY;
+    var t1, newY;
     value = X.GwenUtil_Clamp(value, 0, 1);
     if (!X.ScrollBar.prototype.SetScrollAmount$2.call(this, value, forceUpdate))
       return false;
     if (forceUpdate) {
       t1 = this.m_Bounds;
-      t2 = t1.width;
-      t1 = J.$sub$n(J.$sub$n(t1.height, this._bar.m_Bounds.height), J.$mul$n(this.m_Bounds.width, 2));
-      if (typeof t1 !== "number")
-        throw H.iae(t1);
-      newY = J.toInt$0$n(J.$add$ns(t2, value * t1));
+      newY = J.toInt$0$n(J.$add$ns(t1.width, J.$mul$n(value, J.$sub$n(J.$sub$n(t1.height, this._bar.m_Bounds.height), J.$mul$n(this.m_Bounds.width, 2)))));
       t1 = this._bar;
       t1.MoveTo$2(t1.m_Bounds.left, newY);
     }
@@ -16063,6 +16829,7 @@ main: function() {
   listTexturesToPreload = P.List_List(null, J.JSString);
   H.setRuntimeTypeInfo(listTexturesToPreload, [J.JSString]);
   listTexturesToPreload.push("test16.png");
+  listTexturesToPreload.push("redBrightMetallicC128.png");
   t1.renderer_0 = null;
   switch (0) {
     case 0:
@@ -16134,9 +16901,41 @@ convertDartToNative_ImageData: function(imageData) {
 
 _TypedImageData: {"": "Object;data>,height>,width>", $is_TypedImageData: true, $isImageData: true}}],
 ["", "testdockbase.dart", , R, {
-TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_right,_top,_bottom,_sizer,_dockedTabControl,_drawHover,_dropFar,_hoverRect,_dockBaseEventHandler,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+TestDockBase: {"": "GwenControlBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_lblMouseCoords,m_Disposed,m_Parent,m_ActualParent,m_InnerPanel,m_ToolTip,m_Skin,m_Bounds,m_RenderBounds,m_InnerBounds,m_Padding,m_Margin,m_Name,m_RestrictToParent,m_Disabled,m_Hidden,m_MouseInputEnabled,m_KeyboardInputEnabled,m_DrawBackground,m_Dock,m_Cursor,m_Tabable,m_NeedsLayout,m_CacheTextureDirty,m_CacheToTexture,m_DragAndDrop_Package,m_UserData,m_DrawDebugOutlines,m_Children,HoverEnter,HoverLeave,BoundsChanged,Clicked,DoubleClicked,RightClicked,DoubleRightClicked,m_Accelerators,m_MinimumSize,m_MaximumSize,PaddingOutlineColor,MarginOutlineColor,BoundsOutlineColor",
+  buttonClickHandler_showMsgBox$2: function(control, args) {
+    X.MessageBox$(this.m_Parent, "Hello, MessageBox!", "(Awesome Title)");
+  },
+  get$buttonClickHandler_showMsgBox: function() {
+    return new X.BoundClosure$20(this, R.TestDockBase.prototype.buttonClickHandler_showMsgBox$2, null, "buttonClickHandler_showMsgBox$2");
+  },
+  MouseMoveEventHandler$2: function(control, args) {
+    var t1 = J.getInterceptor(args);
+    if (typeof args === "object" && args !== null && !!t1.$isGwenMouseEventArgs)
+      this.OnMouseMoved$4(args.MouseX, args.MouseY, 0, 0);
+  },
+  get$MouseMoveEventHandler: function() {
+    return new X.BoundClosure$20(this, R.TestDockBase.prototype.MouseMoveEventHandler$2, null, "MouseMoveEventHandler$2");
+  },
+  OnMouseMoved$4: function(x, y, dx, dy) {
+    var contentSize, t1, t2, t3;
+    this._lblMouseCoords.SetText$1("Mouse [" + H.S(x) + ", " + H.S(y) + "] ");
+    contentSize = this._lblMouseCoords.CalcContentSize$0();
+    t1 = contentSize.width;
+    if (J.$gt$n(t1, this._lblMouseCoords.m_Bounds.width) || J.$gt$n(contentSize.height, this._lblMouseCoords.m_Bounds.height)) {
+      t2 = this._lblMouseCoords;
+      t3 = t2.m_Bounds;
+      t2.SetBounds$4(t3.left, t3.top, t1, contentSize.height);
+      t1 = this._lblMouseCoords.m_Parent;
+      t1.m_NeedsLayout = true;
+      t1.m_CacheTextureDirty = true;
+    }
+    t1 = this.m_Parent;
+    t2 = J.getInterceptor(t1);
+    if (typeof t1 === "object" && t1 !== null && !!t2.$isGwenControlCanvas)
+      t1.get$Skin()._renderer.notifyRedrawRequested$0();
+  },
   TestDockBase$4: function(cvsr, $parent, width, height) {
-    var t1, menu, root, editroot, editSweetMode, label, button, $window, textBox, ckbox, rbGroup, radio, scrollControl, but1, listbox, combo, ctrl, node, imgnode, m_splitter, vsplitter, button1, button2, hsplitter, button3, button4, nup;
+    var t1, menu, root, editroot, editSweetMode, tabControl, t2, t3, page0, page1, label, button, $window, imgPanel, textBox, ckbox, rbGroup, radio, scrollControl, but1, listbox, combo, ctrl, node, imgnode, m_splitter, vsplitter, button1, button2, hsplitter, button3, button4, nup, statusBar;
     this.set$Dock(C.Pos_128);
     t1 = this.m_Bounds;
     this.SetBounds$4(t1.left, t1.top, width, height);
@@ -16145,17 +16944,37 @@ TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_ri
     root.get$MyMenu().AddItem$2("Load", "test16.png");
     root.get$MyMenu().AddItem$1("Save");
     root.get$MyMenu().AddItem$1("Save As..");
+    t1 = root.get$MyMenu().AddItem$1("About").Clicked;
+    t1.add$1(t1, new X.GwenControlEventHandler(this.get$buttonClickHandler_showMsgBox()));
     root.get$MyMenu().AddItem$1("Exit");
     editroot = menu.AddItem$1("Edit");
     editSweetMode = editroot.get$MyMenu().AddItem$1("Sweet Mode");
     editSweetMode._checkable = true;
     editSweetMode.set$IsChecked(true);
     editroot.get$MyMenu().AddItem$1("Chalky")._checkable = true;
-    label = X.Label$(this);
+    tabControl = X.TabControl$(this);
+    tabControl.set$Dock(C.Pos_8);
+    t1 = J.$sub$n(this.m_Bounds.height, menu.m_Bounds.height);
+    t2 = tabControl.m_Bounds;
+    t3 = t2.width;
+    tabControl.SetBounds$4(t2.left, t2.top, t3, t1);
+    page0 = tabControl.AddPage$1("page0").Page;
+    page1 = tabControl.AddPage$1("page1").Page;
+    page0.set$Dock(C.Pos_8);
+    t1 = J.$sub$n(J.$sub$n(this.m_Bounds.height, menu.m_Bounds.height), 24);
+    t3 = page0.m_Bounds;
+    t2 = t3.width;
+    page0.SetBounds$4(t3.left, t3.top, t2, t1);
+    page1.set$Dock(C.Pos_8);
+    t1 = J.$sub$n(J.$sub$n(this.m_Bounds.height, menu.m_Bounds.height), 24);
+    t2 = page1.m_Bounds;
+    t3 = t2.width;
+    page1.SetBounds$4(t2.left, t2.top, t3, t1);
+    label = X.Label$(page0);
     t1 = label.m_Bounds;
     label.SetBounds$4(200, 50, t1.width, t1.height);
     label.SetText$1("Hello, Label!");
-    button = X.Button$(this);
+    button = X.Button$(page0);
     t1 = button.m_Bounds;
     button.SetBounds$4(t1.left, t1.top, 24, 24);
     button.SetText$1("ok");
@@ -16163,44 +16982,57 @@ TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_ri
     button.SetBounds$4(485, 40, t1.width, t1.height);
     button.m_MouseInputEnabled = true;
     button.m_KeyboardInputEnabled = true;
-    $window = X.WindowControl$(this, "My Window", false);
+    $window = X.WindowControl$(page0, "My Window", false);
     t1 = $window.m_Bounds;
     $window.SetBounds$4(t1.left, t1.top, 220, 100);
     t1 = $window.m_Bounds;
     $window.SetBounds$4(1, 5, t1.width, t1.height);
-    textBox = X.TextBox$(this);
+    imgPanel = X.ImagePanel$(page0);
+    t1 = imgPanel._texture;
+    t1.set$Name("redBrightMetallicC128.png");
+    t1._renderer.loadTexture$1(t1);
+    if (imgPanel._autoSizeToContents) {
+      t1 = imgPanel._texture;
+      t2 = t1._width;
+      t1 = t1._height;
+      t3 = imgPanel.m_Bounds;
+      imgPanel.SetBounds$4(t3.left, t3.top, t2, t1);
+    }
+    t1 = imgPanel.m_Bounds;
+    imgPanel.SetBounds$4(10, 240, t1.width, t1.height);
+    textBox = X.TextBox$(page1);
     textBox.SetText$1("Hello");
     textBox._autoSizeToContents = false;
     textBox.m_NeedsLayout = true;
     textBox.m_CacheTextureDirty = true;
     t1 = textBox.m_Bounds;
-    textBox.SetBounds$4(13, 490, t1.width, t1.height);
-    ckbox = X.LabeledCheckBox$(this);
+    textBox.SetBounds$4(250, 410, t1.width, t1.height);
+    ckbox = X.LabeledCheckBox$(page1);
     ckbox._label.SetText$1("Awesomeness");
     t1 = ckbox.m_Bounds;
-    ckbox.SetBounds$4(12, 470, t1.width, t1.height);
-    rbGroup = X.RadioButtonGroup$(this);
+    ckbox.SetBounds$4(12, 410, t1.width, t1.height);
+    rbGroup = X.RadioButtonGroup$(page1);
     rbGroup.SetText$1("Options!");
-    rbGroup.AddOption$2("option 1", "opName1");
+    rbGroup.AddOption$2("radio1", "opName1");
     rbGroup.AddOption$2("Optioh 2", "opName2");
     rbGroup.AddOption$2("option 3", "opName3");
     t1 = rbGroup.m_Bounds;
-    rbGroup.SetBounds$4(260, 350, t1.width, t1.height);
-    radio = X.LabeledRadioButton$(this);
+    rbGroup.SetBounds$4(260, 320, t1.width, t1.height);
+    radio = X.LabeledRadioButton$(page0);
     radio._label.SetText$1("Radio Button!");
     t1 = radio.m_Bounds;
-    radio.SetBounds$4(120, 440, t1.width, t1.height);
-    scrollControl = X.ScrollControl$(this);
+    radio.SetBounds$4(120, 410, t1.width, t1.height);
+    scrollControl = X.ScrollControl$(page0);
     scrollControl.SetBounds$4(250, 30, 100, 130);
     but1 = X.Button$(scrollControl);
     but1.SetText$1("Twice as big");
     but1.SetBounds$4(0, 0, 200, 260);
-    listbox = X.ListBox$(this);
+    listbox = X.ListBox$(page0);
     listbox.AddRowUserData$2("Item One", "item1");
     listbox.AddRowUserData$2("Item Two", "item2");
     listbox.AddRowUserData$2("Item THree", "item3");
     but1 = listbox.m_Bounds;
-    listbox.SetBounds$4(350, 350, but1.width, but1.height);
+    listbox.SetBounds$4(350, 150, but1.width, but1.height);
     listbox.AddRowUserData$2("Item FOUR", "4");
     listbox.AddRowUserData$2("ITEM FIVE", "5");
     listbox.AddRowUserData$2("Item six", "6");
@@ -16209,9 +17041,9 @@ TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_ri
     listbox.AddRowUserData$2("Item nine", "9");
     but1 = listbox.m_Bounds;
     listbox.SetBounds$4(but1.left, but1.top, 120, 120);
-    combo = X.ComboBox$(this);
+    combo = X.ComboBox$(page1);
     but1 = combo.m_Bounds;
-    combo.SetBounds$4(5, 170, but1.width, but1.height);
+    combo.SetBounds$4(5, 140, but1.width, but1.height);
     but1 = combo.m_Bounds;
     t1 = but1.height;
     combo.SetBounds$4(but1.left, but1.top, 200, t1);
@@ -16222,7 +17054,7 @@ TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_ri
     combo.AddItem$2("Option 5", "one5");
     combo.AddItem$2("Option 6", "one6");
     combo.AddItem$2("Option 7", "one7");
-    ctrl = X.TreeControl$(this);
+    ctrl = X.TreeControl$(page0);
     ctrl.AddNode$1("Node One");
     node = ctrl.AddNode$1("Node Two");
     node.AddNode$1("Node Two Inside");
@@ -16238,10 +17070,10 @@ TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_ri
     node = ctrl.AddNode$1("Clickables");
     node.AddNode$1("Single Click");
     node.AddNode$1("Double Click");
-    ctrl.SetBounds$4(1, 130, 200, 100);
+    ctrl.SetBounds$4(1, 100, 200, 100);
     ctrl.ExpandAll$0();
-    m_splitter = X.CrossSplitter$(this);
-    m_splitter.SetBounds$4(0, 230, 200, 200);
+    m_splitter = X.CrossSplitter$(page1);
+    m_splitter.SetBounds$4(0, 200, 200, 200);
     m_splitter.set$Dock(C.Pos_0);
     vsplitter = X.VerticalSplitter$(m_splitter);
     button1 = X.Button$(vsplitter);
@@ -16265,16 +17097,28 @@ TestDockBase: {"": "DockBase;_lastControl,Fps,Note,_testdockbase$_cvsr,_left,_ri
     button4 = X.Button$(m_splitter);
     button4.SetText$1("Quad 4");
     m_splitter.SetPanel$2(3, button4);
-    nup = X.NumericUpDown$(this);
+    nup = X.NumericUpDown$(page1);
     t1 = nup.m_Bounds;
     nup.SetBounds$4(350, 25, t1.width, t1.height);
+    statusBar = X.StatusBar$(page0);
+    this._lblMouseCoords = X.Label$(statusBar);
+    t1 = this._lblMouseCoords;
+    t1._autoSizeToContents = false;
+    t1.m_NeedsLayout = true;
+    t1.m_CacheTextureDirty = true;
+    this._lblMouseCoords.SetText$1("Mouse : ");
+    this._lblMouseCoords.SizeToContents$0();
+    statusBar.AddControl$2(this._lblMouseCoords, true);
+    statusBar.SendToBack$0();
+    t1 = $parent.MouseMovedHandler;
+    t1.add$1(t1, new X.GwenControlEventHandler(this.get$MouseMoveEventHandler()));
   },
   static: {
 "": "TestDockBase_SkinImageFilename",
 TestDockBase$: function(cvsr, $parent, width, height) {
-  var t1, t2, t3, t4, t5, t6, t7, t8, t9, t10;
-  t1 = new P.Rectangle(0, 0, 0, 0);
-  H.setRuntimeTypeInfo(t1, [null]);
+  var t1, t2, t3, t4, t5, t6, t7, t8, t9;
+  t1 = P.List_List(null, X.GwenEventHandler);
+  H.setRuntimeTypeInfo(t1, [X.GwenEventHandler]);
   t2 = P.List_List(null, X.GwenEventHandler);
   H.setRuntimeTypeInfo(t2, [X.GwenEventHandler]);
   t3 = P.List_List(null, X.GwenEventHandler);
@@ -16287,17 +17131,14 @@ TestDockBase$: function(cvsr, $parent, width, height) {
   H.setRuntimeTypeInfo(t6, [X.GwenEventHandler]);
   t7 = P.List_List(null, X.GwenEventHandler);
   H.setRuntimeTypeInfo(t7, [X.GwenEventHandler]);
-  t8 = P.List_List(null, X.GwenEventHandler);
-  H.setRuntimeTypeInfo(t8, [X.GwenEventHandler]);
-  t9 = new P.Point(1, 1);
+  t8 = new P.Point(1, 1);
+  H.setRuntimeTypeInfo(t8, [J.JSInt]);
+  t9 = new P.Point(4096, 4096);
   H.setRuntimeTypeInfo(t9, [J.JSInt]);
-  t10 = new P.Point(4096, 4096);
-  H.setRuntimeTypeInfo(t10, [J.JSInt]);
-  t10 = new R.TestDockBase(null, null, null, cvsr, null, null, null, null, null, null, false, false, t1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), new X.GwenEventHandlerList(t8, null, null), null, t9, t10, null, null, null);
-  t10.GwenControlBase$1($parent);
-  t10.DockBase$1($parent);
-  t10.TestDockBase$4(cvsr, $parent, width, height);
-  return t10;
+  t9 = new R.TestDockBase(null, null, null, cvsr, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, new X.GwenEventHandlerList(t1, null, null), new X.GwenEventHandlerList(t2, null, null), new X.GwenEventHandlerList(t3, null, null), new X.GwenEventHandlerList(t4, null, null), new X.GwenEventHandlerList(t5, null, null), new X.GwenEventHandlerList(t6, null, null), new X.GwenEventHandlerList(t7, null, null), null, t8, t9, null, null, null);
+  t9.GwenControlBase$1($parent);
+  t9.TestDockBase$4(cvsr, $parent, width, height);
+  return t9;
 }}
 
 }}],
@@ -16320,6 +17161,9 @@ setOrthographicMatrix: function(orthographicMatrix, left, right, bottom, $top, n
 Matrix4: {"": "Object;storage<",
   toString$0: function(_) {
     return "[0] " + H.S(this.getRow$1(0)) + "\n[1] " + H.S(this.getRow$1(1)) + "\n[2] " + H.S(this.getRow$1(2)) + "\n[3] " + H.S(this.getRow$1(3)) + "\n";
+  },
+  get$dimension: function() {
+    return 4;
   },
   $index: function(_, i) {
     var t1 = this.storage;
@@ -16383,6 +17227,32 @@ Matrix4: {"": "Object;storage<",
     t1[0] = t2[0] * arg;
     return r;
   },
+  _mul_matrix$1: function(arg) {
+    var t1, r, t2, t3;
+    t1 = new Float32Array(16);
+    t1.$dartCachedLength = t1.length;
+    r = new T.Matrix4(t1);
+    t1 = r.storage;
+    t2 = this.storage;
+    t3 = arg.storage;
+    t1[0] = t2[0] * t3[0] + t2[4] * t3[1] + t2[8] * t3[2] + t2[12] * t3[3];
+    t1[4] = t2[0] * t3[4] + t2[4] * t3[5] + t2[8] * t3[6] + t2[12] * t3[7];
+    t1[8] = t2[0] * t3[8] + t2[4] * t3[9] + t2[8] * t3[10] + t2[12] * t3[11];
+    t1[12] = t2[0] * t3[12] + t2[4] * t3[13] + t2[8] * t3[14] + t2[12] * t3[15];
+    t1[1] = t2[1] * t3[0] + t2[5] * t3[1] + t2[9] * t3[2] + t2[13] * t3[3];
+    t1[5] = t2[1] * t3[4] + t2[5] * t3[5] + t2[9] * t3[6] + t2[13] * t3[7];
+    t1[9] = t2[1] * t3[8] + t2[5] * t3[9] + t2[9] * t3[10] + t2[13] * t3[11];
+    t1[13] = t2[1] * t3[12] + t2[5] * t3[13] + t2[9] * t3[14] + t2[13] * t3[15];
+    t1[2] = t2[2] * t3[0] + t2[6] * t3[1] + t2[10] * t3[2] + t2[14] * t3[3];
+    t1[6] = t2[2] * t3[4] + t2[6] * t3[5] + t2[10] * t3[6] + t2[14] * t3[7];
+    t1[10] = t2[2] * t3[8] + t2[6] * t3[9] + t2[10] * t3[10] + t2[14] * t3[11];
+    t1[14] = t2[2] * t3[12] + t2[6] * t3[13] + t2[10] * t3[14] + t2[14] * t3[15];
+    t1[3] = t2[3] * t3[0] + t2[7] * t3[1] + t2[11] * t3[2] + t2[15] * t3[3];
+    t1[7] = t2[3] * t3[4] + t2[7] * t3[5] + t2[11] * t3[6] + t2[15] * t3[7];
+    t1[11] = t2[3] * t3[8] + t2[7] * t3[9] + t2[11] * t3[10] + t2[15] * t3[11];
+    t1[15] = t2[3] * t3[12] + t2[7] * t3[13] + t2[11] * t3[14] + t2[15] * t3[15];
+    return r;
+  },
   _mul_vector$1: function(arg) {
     var t1, r, t2, t3;
     t1 = new Float32Array(4);
@@ -16419,7 +17289,8 @@ Matrix4: {"": "Object;storage<",
       return this._mul_vector$1(arg);
     if (typeof arg === "object" && arg !== null && !!t1.$isVector3)
       return this._mul_vector3$1(arg);
-    arg.get$dimension();
+    if (4 === arg.get$dimension())
+      return this._mul_matrix$1(arg);
     throw H.wrapException(new P.ArgumentError(arg));
   },
   $add: function(_, arg) {
@@ -17086,13 +17957,13 @@ W.KeyboardEvent.$isObject = true;
 X.GwenEventHandler.$isObject = true;
 X.GwenControlBase.$isGwenControlBase = true;
 X.GwenControlBase.$isObject = true;
-W.Event.$isObject = true;
 X.ScrollBarButton.$isGwenControlBase = true;
 X.ScrollBarButton.$isObject = true;
 X.Label.$isGwenControlBase = true;
 X.Label.$isObject = true;
 X.ListBoxRow.$isGwenControlBase = true;
 X.ListBoxRow.$isObject = true;
+W.Event.$isObject = true;
 X.Resizer.$isGwenControlBase = true;
 X.Resizer.$isObject = true;
 X.Bordered.$isObject = true;
@@ -17583,6 +18454,9 @@ J.get$onLoad$x = function(receiver) {
 J.get$shiftKey$x = function(receiver) {
   return J.getInterceptor$x(receiver).get$shiftKey(receiver);
 };
+J.get$style$x = function(receiver) {
+  return J.getInterceptor$x(receiver).get$style(receiver);
+};
 J.get$top$x = function(receiver) {
   return J.getInterceptor$x(receiver).get$top(receiver);
 };
@@ -17649,11 +18523,17 @@ J.save$0$x = function(receiver) {
 J.set$backgroundColor$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$backgroundColor(receiver, value);
 };
+J.set$borderWidth$x = function(receiver, value) {
+  return J.getInterceptor$x(receiver).set$borderWidth(receiver, value);
+};
 J.set$color$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$color(receiver, value);
 };
 J.set$cursor$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$cursor(receiver, value);
+};
+J.set$display$x = function(receiver, value) {
+  return J.getInterceptor$x(receiver).set$display(receiver, value);
 };
 J.set$fillStyle$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$fillStyle(receiver, value);
@@ -17672,6 +18552,9 @@ J.set$textAlign$x = function(receiver, value) {
 };
 J.set$textBaseline$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$textBaseline(receiver, value);
+};
+J.set$visibility$x = function(receiver, value) {
+  return J.getInterceptor$x(receiver).set$visibility(receiver, value);
 };
 J.set$width$x = function(receiver, value) {
   return J.getInterceptor$x(receiver).set$width(receiver, value);
@@ -17843,9 +18726,6 @@ Isolate.$lazy($, "_lastClickPos", "InputHandler__lastClickPos", "get$InputHandle
 });
 Isolate.$lazy($, "Zero", "GwenPadding_Zero", "get$GwenPadding_Zero", function() {
   return new X.GwenPadding(0, 0, 0, 0);
-});
-Isolate.$lazy($, "One", "GwenPadding_One", "get$GwenPadding_One", function() {
-  return new X.GwenPadding(1, 1, 1, 1);
 });
 Isolate.$lazy($, "Two", "GwenPadding_Two", "get$GwenPadding_Two", function() {
   return new X.GwenPadding(2, 2, 2, 2);
@@ -18534,6 +19414,9 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   Element.prototype = $desc;
+  Element.prototype.get$style = function(receiver) {
+    return receiver.style;
+  };
   function EmbedElement() {
   }
   EmbedElement.builtin$cls = "EmbedElement";
@@ -23875,25 +24758,6 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   CssCursor.prototype = $desc;
-  function DockBaseEventHandler(_dockBase) {
-    this._dockBase = _dockBase;
-  }
-  DockBaseEventHandler.builtin$cls = "DockBaseEventHandler";
-  if (!"name" in DockBaseEventHandler)
-    DockBaseEventHandler.name = "DockBaseEventHandler";
-  $desc = $collectedClasses.DockBaseEventHandler;
-  if ($desc instanceof Array)
-    $desc = $desc[1];
-  DockBaseEventHandler.prototype = $desc;
-  function DockBase() {
-  }
-  DockBase.builtin$cls = "DockBase";
-  if (!"name" in DockBase)
-    DockBase.name = "DockBase";
-  $desc = $collectedClasses.DockBase;
-  if ($desc instanceof Array)
-    $desc = $desc[1];
-  DockBase.prototype = $desc;
   function DownArrow(_comboBox, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
     this._comboBox = _comboBox;
     this.m_Disposed = m_Disposed;
@@ -24058,12 +24922,24 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   GwenControlBase.prototype = $desc;
-  function GwenControlCanvas(NeedsRedraw, _scale, _backgroundColor, _firstTab, _nextTab, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+  function GwenMouseEventArgs(MouseX, MouseY) {
+    this.MouseX = MouseX;
+    this.MouseY = MouseY;
+  }
+  GwenMouseEventArgs.builtin$cls = "GwenMouseEventArgs";
+  if (!"name" in GwenMouseEventArgs)
+    GwenMouseEventArgs.name = "GwenMouseEventArgs";
+  $desc = $collectedClasses.GwenMouseEventArgs;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  GwenMouseEventArgs.prototype = $desc;
+  function GwenControlCanvas(NeedsRedraw, _scale, _backgroundColor, _firstTab, _nextTab, MouseMovedHandler, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
     this.NeedsRedraw = NeedsRedraw;
     this._scale = _scale;
     this._backgroundColor = _backgroundColor;
     this._firstTab = _firstTab;
     this._nextTab = _nextTab;
+    this.MouseMovedHandler = MouseMovedHandler;
     this.m_Disposed = m_Disposed;
     this.m_Parent = m_Parent;
     this.m_ActualParent = m_ActualParent;
@@ -24212,6 +25088,20 @@ function dart_precompiled($collectedClasses) {
   GwenMargin.prototype.get$Right = function() {
     return this.Right;
   };
+  function GwenPackage(Name, UserData, IsDraggable, DrawControl, HoldOffset) {
+    this.Name = Name;
+    this.UserData = UserData;
+    this.IsDraggable = IsDraggable;
+    this.DrawControl = DrawControl;
+    this.HoldOffset = HoldOffset;
+  }
+  GwenPackage.builtin$cls = "GwenPackage";
+  if (!"name" in GwenPackage)
+    GwenPackage.name = "GwenPackage";
+  $desc = $collectedClasses.GwenPackage;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  GwenPackage.prototype = $desc;
   function CanvasFont(_facename, _size, _bSmooth, _data, _renderer) {
     this._facename = _facename;
     this._size = _size;
@@ -25143,10 +26033,11 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   HorizontalSplitter.prototype = $desc;
-  function ImagePanel(_texture, _uv, _drawColor, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+  function ImagePanel(_texture, _uv, _drawColor, _autoSizeToContents, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
     this._texture = _texture;
     this._uv = _uv;
     this._drawColor = _drawColor;
+    this._autoSizeToContents = _autoSizeToContents;
     this.m_Disposed = m_Disposed;
     this.m_Parent = m_Parent;
     this.m_ActualParent = m_ActualParent;
@@ -25750,6 +26641,68 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   MenuStrip.prototype = $desc;
+  function MessageBox(_button, _label, Dismissed, _titleBar, _title, _closeButton, DeleteOnClose, _modal, ClampMovement, _resizer, Resized, _onResizeHandler, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+    this._button = _button;
+    this._label = _label;
+    this.Dismissed = Dismissed;
+    this._titleBar = _titleBar;
+    this._title = _title;
+    this._closeButton = _closeButton;
+    this.DeleteOnClose = DeleteOnClose;
+    this._modal = _modal;
+    this.ClampMovement = ClampMovement;
+    this._resizer = _resizer;
+    this.Resized = Resized;
+    this._onResizeHandler = _onResizeHandler;
+    this.m_Disposed = m_Disposed;
+    this.m_Parent = m_Parent;
+    this.m_ActualParent = m_ActualParent;
+    this.m_InnerPanel = m_InnerPanel;
+    this.m_ToolTip = m_ToolTip;
+    this.m_Skin = m_Skin;
+    this.m_Bounds = m_Bounds;
+    this.m_RenderBounds = m_RenderBounds;
+    this.m_InnerBounds = m_InnerBounds;
+    this.m_Padding = m_Padding;
+    this.m_Margin = m_Margin;
+    this.m_Name = m_Name;
+    this.m_RestrictToParent = m_RestrictToParent;
+    this.m_Disabled = m_Disabled;
+    this.m_Hidden = m_Hidden;
+    this.m_MouseInputEnabled = m_MouseInputEnabled;
+    this.m_KeyboardInputEnabled = m_KeyboardInputEnabled;
+    this.m_DrawBackground = m_DrawBackground;
+    this.m_Dock = m_Dock;
+    this.m_Cursor = m_Cursor;
+    this.m_Tabable = m_Tabable;
+    this.m_NeedsLayout = m_NeedsLayout;
+    this.m_CacheTextureDirty = m_CacheTextureDirty;
+    this.m_CacheToTexture = m_CacheToTexture;
+    this.m_DragAndDrop_Package = m_DragAndDrop_Package;
+    this.m_UserData = m_UserData;
+    this.m_DrawDebugOutlines = m_DrawDebugOutlines;
+    this.m_Children = m_Children;
+    this.HoverEnter = HoverEnter;
+    this.HoverLeave = HoverLeave;
+    this.BoundsChanged = BoundsChanged;
+    this.Clicked = Clicked;
+    this.DoubleClicked = DoubleClicked;
+    this.RightClicked = RightClicked;
+    this.DoubleRightClicked = DoubleRightClicked;
+    this.m_Accelerators = m_Accelerators;
+    this.m_MinimumSize = m_MinimumSize;
+    this.m_MaximumSize = m_MaximumSize;
+    this.PaddingOutlineColor = PaddingOutlineColor;
+    this.MarginOutlineColor = MarginOutlineColor;
+    this.BoundsOutlineColor = BoundsOutlineColor;
+  }
+  MessageBox.builtin$cls = "MessageBox";
+  if (!"name" in MessageBox)
+    MessageBox.name = "MessageBox";
+  $desc = $collectedClasses.MessageBox;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  MessageBox.prototype = $desc;
   function Modal(m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
     this.m_Disposed = m_Disposed;
     this.m_Parent = m_Parent;
@@ -26469,6 +27422,309 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   SplitterBar.prototype = $desc;
+  function StatusBar(_text, _align, _textPadding, _autoSizeToContents, _mouseEventHandlerAddedHandler, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+    this._text = _text;
+    this._align = _align;
+    this._textPadding = _textPadding;
+    this._autoSizeToContents = _autoSizeToContents;
+    this._mouseEventHandlerAddedHandler = _mouseEventHandlerAddedHandler;
+    this.m_Disposed = m_Disposed;
+    this.m_Parent = m_Parent;
+    this.m_ActualParent = m_ActualParent;
+    this.m_InnerPanel = m_InnerPanel;
+    this.m_ToolTip = m_ToolTip;
+    this.m_Skin = m_Skin;
+    this.m_Bounds = m_Bounds;
+    this.m_RenderBounds = m_RenderBounds;
+    this.m_InnerBounds = m_InnerBounds;
+    this.m_Padding = m_Padding;
+    this.m_Margin = m_Margin;
+    this.m_Name = m_Name;
+    this.m_RestrictToParent = m_RestrictToParent;
+    this.m_Disabled = m_Disabled;
+    this.m_Hidden = m_Hidden;
+    this.m_MouseInputEnabled = m_MouseInputEnabled;
+    this.m_KeyboardInputEnabled = m_KeyboardInputEnabled;
+    this.m_DrawBackground = m_DrawBackground;
+    this.m_Dock = m_Dock;
+    this.m_Cursor = m_Cursor;
+    this.m_Tabable = m_Tabable;
+    this.m_NeedsLayout = m_NeedsLayout;
+    this.m_CacheTextureDirty = m_CacheTextureDirty;
+    this.m_CacheToTexture = m_CacheToTexture;
+    this.m_DragAndDrop_Package = m_DragAndDrop_Package;
+    this.m_UserData = m_UserData;
+    this.m_DrawDebugOutlines = m_DrawDebugOutlines;
+    this.m_Children = m_Children;
+    this.HoverEnter = HoverEnter;
+    this.HoverLeave = HoverLeave;
+    this.BoundsChanged = BoundsChanged;
+    this.Clicked = Clicked;
+    this.DoubleClicked = DoubleClicked;
+    this.RightClicked = RightClicked;
+    this.DoubleRightClicked = DoubleRightClicked;
+    this.m_Accelerators = m_Accelerators;
+    this.m_MinimumSize = m_MinimumSize;
+    this.m_MaximumSize = m_MaximumSize;
+    this.PaddingOutlineColor = PaddingOutlineColor;
+    this.MarginOutlineColor = MarginOutlineColor;
+    this.BoundsOutlineColor = BoundsOutlineColor;
+  }
+  StatusBar.builtin$cls = "StatusBar";
+  if (!"name" in StatusBar)
+    StatusBar.name = "StatusBar";
+  $desc = $collectedClasses.StatusBar;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  StatusBar.prototype = $desc;
+  function TabButton(Page, _Control, _depressed, IsToggle, _toggleStatus, _centerImage, _image, Pressed, Released, Toggled, ToggledOn, ToggledOff, _text, _align, _textPadding, _autoSizeToContents, _mouseEventHandlerAddedHandler, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+    this.Page = Page;
+    this._Control = _Control;
+    this._depressed = _depressed;
+    this.IsToggle = IsToggle;
+    this._toggleStatus = _toggleStatus;
+    this._centerImage = _centerImage;
+    this._image = _image;
+    this.Pressed = Pressed;
+    this.Released = Released;
+    this.Toggled = Toggled;
+    this.ToggledOn = ToggledOn;
+    this.ToggledOff = ToggledOff;
+    this._text = _text;
+    this._align = _align;
+    this._textPadding = _textPadding;
+    this._autoSizeToContents = _autoSizeToContents;
+    this._mouseEventHandlerAddedHandler = _mouseEventHandlerAddedHandler;
+    this.m_Disposed = m_Disposed;
+    this.m_Parent = m_Parent;
+    this.m_ActualParent = m_ActualParent;
+    this.m_InnerPanel = m_InnerPanel;
+    this.m_ToolTip = m_ToolTip;
+    this.m_Skin = m_Skin;
+    this.m_Bounds = m_Bounds;
+    this.m_RenderBounds = m_RenderBounds;
+    this.m_InnerBounds = m_InnerBounds;
+    this.m_Padding = m_Padding;
+    this.m_Margin = m_Margin;
+    this.m_Name = m_Name;
+    this.m_RestrictToParent = m_RestrictToParent;
+    this.m_Disabled = m_Disabled;
+    this.m_Hidden = m_Hidden;
+    this.m_MouseInputEnabled = m_MouseInputEnabled;
+    this.m_KeyboardInputEnabled = m_KeyboardInputEnabled;
+    this.m_DrawBackground = m_DrawBackground;
+    this.m_Dock = m_Dock;
+    this.m_Cursor = m_Cursor;
+    this.m_Tabable = m_Tabable;
+    this.m_NeedsLayout = m_NeedsLayout;
+    this.m_CacheTextureDirty = m_CacheTextureDirty;
+    this.m_CacheToTexture = m_CacheToTexture;
+    this.m_DragAndDrop_Package = m_DragAndDrop_Package;
+    this.m_UserData = m_UserData;
+    this.m_DrawDebugOutlines = m_DrawDebugOutlines;
+    this.m_Children = m_Children;
+    this.HoverEnter = HoverEnter;
+    this.HoverLeave = HoverLeave;
+    this.BoundsChanged = BoundsChanged;
+    this.Clicked = Clicked;
+    this.DoubleClicked = DoubleClicked;
+    this.RightClicked = RightClicked;
+    this.DoubleRightClicked = DoubleRightClicked;
+    this.m_Accelerators = m_Accelerators;
+    this.m_MinimumSize = m_MinimumSize;
+    this.m_MaximumSize = m_MaximumSize;
+    this.PaddingOutlineColor = PaddingOutlineColor;
+    this.MarginOutlineColor = MarginOutlineColor;
+    this.BoundsOutlineColor = BoundsOutlineColor;
+  }
+  TabButton.builtin$cls = "TabButton";
+  if (!"name" in TabButton)
+    TabButton.name = "TabButton";
+  $desc = $collectedClasses.TabButton;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  TabButton.prototype = $desc;
+  function TabControlScrollPressedEventHandler(_direction, _tabControl) {
+    this._direction = _direction;
+    this._tabControl = _tabControl;
+  }
+  TabControlScrollPressedEventHandler.builtin$cls = "TabControlScrollPressedEventHandler";
+  if (!"name" in TabControlScrollPressedEventHandler)
+    TabControlScrollPressedEventHandler.name = "TabControlScrollPressedEventHandler";
+  $desc = $collectedClasses.TabControlScrollPressedEventHandler;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  TabControlScrollPressedEventHandler.prototype = $desc;
+  function TabControlOnTabHandler(_selector, _tabControl) {
+    this._selector = _selector;
+    this._tabControl = _tabControl;
+  }
+  TabControlOnTabHandler.builtin$cls = "TabControlOnTabHandler";
+  if (!"name" in TabControlOnTabHandler)
+    TabControlOnTabHandler.name = "TabControlOnTabHandler";
+  $desc = $collectedClasses.TabControlOnTabHandler;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  TabControlOnTabHandler.prototype = $desc;
+  function TabControl(_TabStrip, _scroll, _CurrentButton, _ScrollOffset, _onTabPressedHandler, TabAdded, TabRemoved, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+    this._TabStrip = _TabStrip;
+    this._scroll = _scroll;
+    this._CurrentButton = _CurrentButton;
+    this._ScrollOffset = _ScrollOffset;
+    this._onTabPressedHandler = _onTabPressedHandler;
+    this.TabAdded = TabAdded;
+    this.TabRemoved = TabRemoved;
+    this.m_Disposed = m_Disposed;
+    this.m_Parent = m_Parent;
+    this.m_ActualParent = m_ActualParent;
+    this.m_InnerPanel = m_InnerPanel;
+    this.m_ToolTip = m_ToolTip;
+    this.m_Skin = m_Skin;
+    this.m_Bounds = m_Bounds;
+    this.m_RenderBounds = m_RenderBounds;
+    this.m_InnerBounds = m_InnerBounds;
+    this.m_Padding = m_Padding;
+    this.m_Margin = m_Margin;
+    this.m_Name = m_Name;
+    this.m_RestrictToParent = m_RestrictToParent;
+    this.m_Disabled = m_Disabled;
+    this.m_Hidden = m_Hidden;
+    this.m_MouseInputEnabled = m_MouseInputEnabled;
+    this.m_KeyboardInputEnabled = m_KeyboardInputEnabled;
+    this.m_DrawBackground = m_DrawBackground;
+    this.m_Dock = m_Dock;
+    this.m_Cursor = m_Cursor;
+    this.m_Tabable = m_Tabable;
+    this.m_NeedsLayout = m_NeedsLayout;
+    this.m_CacheTextureDirty = m_CacheTextureDirty;
+    this.m_CacheToTexture = m_CacheToTexture;
+    this.m_DragAndDrop_Package = m_DragAndDrop_Package;
+    this.m_UserData = m_UserData;
+    this.m_DrawDebugOutlines = m_DrawDebugOutlines;
+    this.m_Children = m_Children;
+    this.HoverEnter = HoverEnter;
+    this.HoverLeave = HoverLeave;
+    this.BoundsChanged = BoundsChanged;
+    this.Clicked = Clicked;
+    this.DoubleClicked = DoubleClicked;
+    this.RightClicked = RightClicked;
+    this.DoubleRightClicked = DoubleRightClicked;
+    this.m_Accelerators = m_Accelerators;
+    this.m_MinimumSize = m_MinimumSize;
+    this.m_MaximumSize = m_MaximumSize;
+    this.PaddingOutlineColor = PaddingOutlineColor;
+    this.MarginOutlineColor = MarginOutlineColor;
+    this.BoundsOutlineColor = BoundsOutlineColor;
+  }
+  TabControl.builtin$cls = "TabControl";
+  if (!"name" in TabControl)
+    TabControl.name = "TabControl";
+  $desc = $collectedClasses.TabControl;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  TabControl.prototype = $desc;
+  function TabControlInner(m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+    this.m_Disposed = m_Disposed;
+    this.m_Parent = m_Parent;
+    this.m_ActualParent = m_ActualParent;
+    this.m_InnerPanel = m_InnerPanel;
+    this.m_ToolTip = m_ToolTip;
+    this.m_Skin = m_Skin;
+    this.m_Bounds = m_Bounds;
+    this.m_RenderBounds = m_RenderBounds;
+    this.m_InnerBounds = m_InnerBounds;
+    this.m_Padding = m_Padding;
+    this.m_Margin = m_Margin;
+    this.m_Name = m_Name;
+    this.m_RestrictToParent = m_RestrictToParent;
+    this.m_Disabled = m_Disabled;
+    this.m_Hidden = m_Hidden;
+    this.m_MouseInputEnabled = m_MouseInputEnabled;
+    this.m_KeyboardInputEnabled = m_KeyboardInputEnabled;
+    this.m_DrawBackground = m_DrawBackground;
+    this.m_Dock = m_Dock;
+    this.m_Cursor = m_Cursor;
+    this.m_Tabable = m_Tabable;
+    this.m_NeedsLayout = m_NeedsLayout;
+    this.m_CacheTextureDirty = m_CacheTextureDirty;
+    this.m_CacheToTexture = m_CacheToTexture;
+    this.m_DragAndDrop_Package = m_DragAndDrop_Package;
+    this.m_UserData = m_UserData;
+    this.m_DrawDebugOutlines = m_DrawDebugOutlines;
+    this.m_Children = m_Children;
+    this.HoverEnter = HoverEnter;
+    this.HoverLeave = HoverLeave;
+    this.BoundsChanged = BoundsChanged;
+    this.Clicked = Clicked;
+    this.DoubleClicked = DoubleClicked;
+    this.RightClicked = RightClicked;
+    this.DoubleRightClicked = DoubleRightClicked;
+    this.m_Accelerators = m_Accelerators;
+    this.m_MinimumSize = m_MinimumSize;
+    this.m_MaximumSize = m_MaximumSize;
+    this.PaddingOutlineColor = PaddingOutlineColor;
+    this.MarginOutlineColor = MarginOutlineColor;
+    this.BoundsOutlineColor = BoundsOutlineColor;
+  }
+  TabControlInner.builtin$cls = "TabControlInner";
+  if (!"name" in TabControlInner)
+    TabControlInner.name = "TabControlInner";
+  $desc = $collectedClasses.TabControlInner;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  TabControlInner.prototype = $desc;
+  function TabStrip(_TabDragControl, AllowReorder, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+    this._TabDragControl = _TabDragControl;
+    this.AllowReorder = AllowReorder;
+    this.m_Disposed = m_Disposed;
+    this.m_Parent = m_Parent;
+    this.m_ActualParent = m_ActualParent;
+    this.m_InnerPanel = m_InnerPanel;
+    this.m_ToolTip = m_ToolTip;
+    this.m_Skin = m_Skin;
+    this.m_Bounds = m_Bounds;
+    this.m_RenderBounds = m_RenderBounds;
+    this.m_InnerBounds = m_InnerBounds;
+    this.m_Padding = m_Padding;
+    this.m_Margin = m_Margin;
+    this.m_Name = m_Name;
+    this.m_RestrictToParent = m_RestrictToParent;
+    this.m_Disabled = m_Disabled;
+    this.m_Hidden = m_Hidden;
+    this.m_MouseInputEnabled = m_MouseInputEnabled;
+    this.m_KeyboardInputEnabled = m_KeyboardInputEnabled;
+    this.m_DrawBackground = m_DrawBackground;
+    this.m_Dock = m_Dock;
+    this.m_Cursor = m_Cursor;
+    this.m_Tabable = m_Tabable;
+    this.m_NeedsLayout = m_NeedsLayout;
+    this.m_CacheTextureDirty = m_CacheTextureDirty;
+    this.m_CacheToTexture = m_CacheToTexture;
+    this.m_DragAndDrop_Package = m_DragAndDrop_Package;
+    this.m_UserData = m_UserData;
+    this.m_DrawDebugOutlines = m_DrawDebugOutlines;
+    this.m_Children = m_Children;
+    this.HoverEnter = HoverEnter;
+    this.HoverLeave = HoverLeave;
+    this.BoundsChanged = BoundsChanged;
+    this.Clicked = Clicked;
+    this.DoubleClicked = DoubleClicked;
+    this.RightClicked = RightClicked;
+    this.DoubleRightClicked = DoubleRightClicked;
+    this.m_Accelerators = m_Accelerators;
+    this.m_MinimumSize = m_MinimumSize;
+    this.m_MaximumSize = m_MaximumSize;
+    this.PaddingOutlineColor = PaddingOutlineColor;
+    this.MarginOutlineColor = MarginOutlineColor;
+    this.BoundsOutlineColor = BoundsOutlineColor;
+  }
+  TabStrip.builtin$cls = "TabStrip";
+  if (!"name" in TabStrip)
+    TabStrip.name = "TabStrip";
+  $desc = $collectedClasses.TabStrip;
+  if ($desc instanceof Array)
+    $desc = $desc[1];
+  TabStrip.prototype = $desc;
   function TextBox(_selectAll, _cursorPos, _cursorEnd, m_SelectionBounds, m_CaretBounds, m_LastInputTime, TextChanged, SubmitPressed, _text, _align, _textPadding, _autoSizeToContents, _mouseEventHandlerAddedHandler, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
     this._selectAll = _selectAll;
     this._cursorPos = _cursorPos;
@@ -27235,21 +28491,12 @@ function dart_precompiled($collectedClasses) {
   _TypedImageData.prototype.get$width = function(receiver) {
     return this.width;
   };
-  function TestDockBase(_lastControl, Fps, Note, _testdockbase$_cvsr, _left, _right, _top, _bottom, _sizer, _dockedTabControl, _drawHover, _dropFar, _hoverRect, _dockBaseEventHandler, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
+  function TestDockBase(_lastControl, Fps, Note, _testdockbase$_cvsr, _lblMouseCoords, m_Disposed, m_Parent, m_ActualParent, m_InnerPanel, m_ToolTip, m_Skin, m_Bounds, m_RenderBounds, m_InnerBounds, m_Padding, m_Margin, m_Name, m_RestrictToParent, m_Disabled, m_Hidden, m_MouseInputEnabled, m_KeyboardInputEnabled, m_DrawBackground, m_Dock, m_Cursor, m_Tabable, m_NeedsLayout, m_CacheTextureDirty, m_CacheToTexture, m_DragAndDrop_Package, m_UserData, m_DrawDebugOutlines, m_Children, HoverEnter, HoverLeave, BoundsChanged, Clicked, DoubleClicked, RightClicked, DoubleRightClicked, m_Accelerators, m_MinimumSize, m_MaximumSize, PaddingOutlineColor, MarginOutlineColor, BoundsOutlineColor) {
     this._lastControl = _lastControl;
     this.Fps = Fps;
     this.Note = Note;
     this._testdockbase$_cvsr = _testdockbase$_cvsr;
-    this._left = _left;
-    this._right = _right;
-    this._top = _top;
-    this._bottom = _bottom;
-    this._sizer = _sizer;
-    this._dockedTabControl = _dockedTabControl;
-    this._drawHover = _drawHover;
-    this._dropFar = _dropFar;
-    this._hoverRect = _hoverRect;
-    this._dockBaseEventHandler = _dockBaseEventHandler;
+    this._lblMouseCoords = _lblMouseCoords;
     this.m_Disposed = m_Disposed;
     this.m_Parent = m_Parent;
     this.m_ActualParent = m_ActualParent;
@@ -27383,5 +28630,5 @@ function dart_precompiled($collectedClasses) {
   if ($desc instanceof Array)
     $desc = $desc[1];
   Closure$20.prototype = $desc;
-  return [HtmlElement, AnchorElement, AnimationEvent, AreaElement, AudioElement, AutocompleteErrorEvent, BRElement, BaseElement, BeforeLoadEvent, BeforeUnloadEvent, Blob, BodyElement, ButtonElement, CanvasElement, CanvasGradient, CanvasPattern, CanvasRenderingContext, CanvasRenderingContext2D, CloseEvent, CompositionEvent, ContentElement, CssFontFaceLoadEvent, CssStyleDeclaration, CustomEvent, DListElement, DataListElement, DetailsElement, DeviceMotionEvent, DeviceOrientationEvent, DialogElement, DivElement, Document, DomError, DomException, Element, EmbedElement, ErrorEvent, Event, EventTarget, FieldSetElement, File, FileError, FocusEvent, FormElement, HRElement, HashChangeEvent, HeadElement, HeadingElement, HtmlDocument, HtmlHtmlElement, IFrameElement, ImageData, ImageElement, InputElement, KeyboardEvent, KeygenElement, LIElement, LabelElement, LegendElement, LinkElement, MapElement, MediaElement, MediaError, MediaKeyError, MediaKeyEvent, MediaKeyMessageEvent, MediaKeyNeededEvent, MediaStream, MediaStreamEvent, MediaStreamTrackEvent, MenuElement, MessageEvent, MetaElement, MeterElement, MidiConnectionEvent, MidiMessageEvent, ModElement, MouseEvent, Navigator, NavigatorUserMediaError, Node, OListElement, ObjectElement, OptGroupElement, OptionElement, OutputElement, OverflowEvent, PageTransitionEvent, ParagraphElement, ParamElement, PopStateEvent, PositionError, PreElement, ProgressElement, ProgressEvent, QuoteElement, ResourceProgressEvent, RtcDataChannelEvent, RtcDtmfToneChangeEvent, RtcIceCandidateEvent, ScriptElement, SecurityPolicyViolationEvent, SelectElement, ShadowElement, SourceElement, SpanElement, SpeechInputEvent, SpeechRecognitionError, SpeechRecognitionEvent, SpeechSynthesisEvent, StorageEvent, StyleElement, TableCaptionElement, TableCellElement, TableColElement, TableElement, TableRowElement, TableSectionElement, TemplateElement, TextAreaElement, TextEvent, TextMetrics, TitleElement, TouchEvent, TrackElement, TrackEvent, TransitionEvent, UIEvent, UListElement, UnknownElement, VideoElement, WheelEvent, Window, _ClientRect, _HTMLAppletElement, _HTMLBaseFontElement, _HTMLDirectoryElement, _HTMLFontElement, _HTMLFrameElement, _HTMLFrameSetElement, _HTMLMarqueeElement, _MutationEvent, _XMLHttpRequestProgressEvent, VersionChangeEvent, AElement, AltGlyphElement, AnimateElement, AnimateMotionElement, AnimateTransformElement, AnimatedLength, AnimatedLengthList, AnimatedNumber, AnimatedNumberList, AnimationElement, CircleElement, ClipPathElement, DefsElement, DescElement, EllipseElement, FEBlendElement, FEColorMatrixElement, FEComponentTransferElement, FECompositeElement, FEConvolveMatrixElement, FEDiffuseLightingElement, FEDisplacementMapElement, FEDistantLightElement, FEFloodElement, FEFuncAElement, FEFuncBElement, FEFuncGElement, FEFuncRElement, FEGaussianBlurElement, FEImageElement, FEMergeElement, FEMergeNodeElement, FEMorphologyElement, FEOffsetElement, FEPointLightElement, FESpecularLightingElement, FESpotLightElement, FETileElement, FETurbulenceElement, FilterElement, ForeignObjectElement, GElement, GraphicsElement, ImageElement0, LineElement, LinearGradientElement, MarkerElement, MaskElement, MetadataElement, PathElement, PatternElement, PolygonElement, PolylineElement, RadialGradientElement, Rect, RectElement, ScriptElement0, SetElement, StopElement, StyleElement0, SvgElement, SvgSvgElement, SwitchElement, SymbolElement, TSpanElement, TextContentElement, TextElement, TextPathElement, TextPositioningElement, TitleElement0, UseElement, ViewElement, ZoomEvent, _GradientElement, _SVGAltGlyphDefElement, _SVGAltGlyphItemElement, _SVGAnimateColorElement, _SVGComponentTransferFunctionElement, _SVGCursorElement, _SVGFEDropShadowElement, _SVGFontElement, _SVGFontFaceElement, _SVGFontFaceFormatElement, _SVGFontFaceNameElement, _SVGFontFaceSrcElement, _SVGFontFaceUriElement, _SVGGlyphElement, _SVGGlyphRefElement, _SVGHKernElement, _SVGMPathElement, _SVGMissingGlyphElement, _SVGVKernElement, AudioProcessingEvent, OfflineAudioCompletionEvent, Buffer, ContextEvent, Program, RenderingContext, Shader, Texture, UniformLocation, SqlError, ByteBuffer, TypedData, ByteData, Float32List, Float64List, Int16List, Int32List, Int8List, Uint16List, Uint32List, Uint8ClampedList, Uint8List, JS_CONST, Interceptor, JSBool, JSNull, JavaScriptObject, PlainJavaScriptObject, UnknownJavaScriptObject, JSArray, JSMutableArray, JSFixedArray, JSExtendableArray, JSNumber, JSInt, JSDouble, JSString, startRootIsolate_closure, startRootIsolate_closure0, _Manager, _IsolateContext, _EventLoop, _EventLoop__runHelper_next, _IsolateEvent, _MainManagerStub, IsolateNatives__processWorkerMessage_closure, _BaseSendPort, _NativeJsSendPort, _NativeJsSendPort_send_closure, _NativeJsSendPort_send__closure, _WorkerSendPort, _WorkerSendPort_send_closure, ReceivePortImpl, BoundClosure$i0, _waitForPendingPorts_closure, _PendingSendPortFinder, _JsSerializer, _JsCopier, _JsDeserializer, _JsVisitedMap, _MessageTraverserVisitedMap, _MessageTraverser, BoundClosure$1, _Copier, _Copier_visitMap_closure, _Serializer, _Deserializer, TimerImpl, TimerImpl_internalCallback, TimerImpl_internalCallback0, TypeErrorDecoder, NullError, JsNoSuchMethodError, UnknownJsTypeError, unwrapException_saveStackTrace, _StackTrace, invokeClosure_closure, invokeClosure_closure0, invokeClosure_closure1, invokeClosure_closure2, invokeClosure_closure3, Closure, BoundClosure, CastErrorImplementation, TypeImpl, initHooks_closure, initHooks_closure0, initHooks_closure1, ListIterator, MappedIterable, EfficientLengthMappedIterable, MappedIterator, FixedLengthListMixin, _AsyncError, Future, Future_Future_closure, Future_wait_handleError, Future_wait_closure, _Completer, _AsyncCompleter, _Future, BoundClosure$2, _Future__addListener_closure, _Future__chainFutures_closure, _Future__chainFutures_closure0, _Future__asyncComplete_closure, _Future__asyncCompleteError_closure, _Future__propagateToListeners_closure, _Future__propagateToListeners_closure0, _Future__propagateToListeners__closure, _Future__propagateToListeners__closure0, Stream, Stream_forEach_closure, Stream_forEach__closure, Stream_forEach__closure0, Stream_forEach_closure0, Stream_length_closure, Stream_length_closure0, StreamSubscription, BoundClosure$i1, _StreamController, _StreamController__subscribe_closure, _StreamController__recordCancel_complete, _SyncStreamControllerDispatch, _AsyncStreamControllerDispatch, _AsyncStreamController, _StreamController__AsyncStreamControllerDispatch, _SyncStreamController, _StreamController__SyncStreamControllerDispatch, _ControllerStream, _ControllerSubscription, BoundClosure$0, _EventSink, _BufferingStreamSubscription, _BufferingStreamSubscription__sendDone_sendDone, _StreamImpl, _DelayedEvent, _DelayedData, _DelayedDone, _PendingEvents, _PendingEvents_schedule_closure, _StreamImplEvents, _cancelAndError_closure, _cancelAndErrorClosure_closure, _BaseZone, _BaseZone_bindCallback_closure, _BaseZone_bindCallback_closure0, _BaseZone_bindUnaryCallback_closure, _BaseZone_bindUnaryCallback_closure0, _rootHandleUncaughtError_closure, _rootHandleUncaughtError__closure, _RootZone, _HashMap, _HashMap_values_closure, HashMapKeyIterable, HashMapKeyIterator, _LinkedHashMap, _LinkedHashMap_values_closure, LinkedHashMapCell, LinkedHashMapKeyIterable, LinkedHashMapKeyIterator, _HashSet, _IdentityHashSet, HashSetIterator, _HashSetBase, IterableBase, ListMixin, Maps_mapToString_closure, ListQueue, _ListQueueIterator, NoSuchMethodError_toString_closure, DateTime, DateTime_toString_fourDigits, DateTime_toString_threeDigits, DateTime_toString_twoDigits, Duration, Duration_toString_sixDigits, Duration_toString_twoDigits, Error, NullThrownError, ArgumentError, RangeError, UnsupportedError, UnimplementedError, StateError, ConcurrentModificationError, StackOverflowError, CyclicInitializationError, _ExceptionImplementation, FormatException, IntegerDivisionByZeroException, Expando, Function, Iterator, Null, Object, StackTrace, StringBuffer, Symbol, Interceptor_CssStyleDeclarationBase, CssStyleDeclarationBase, EventStreamProvider, _EventStream, _ElementEventStreamImpl, _EventStreamSubscription, ReceivePort, Point, _RectangleBase, Rectangle, TypedData_ListMixin, TypedData_ListMixin_FixedLengthListMixin, TypedData_ListMixin0, TypedData_ListMixin_FixedLengthListMixin0, TypedData_ListMixin1, TypedData_ListMixin_FixedLengthListMixin1, TypedData_ListMixin2, TypedData_ListMixin_FixedLengthListMixin2, TypedData_ListMixin3, TypedData_ListMixin_FixedLengthListMixin3, TypedData_ListMixin4, TypedData_ListMixin_FixedLengthListMixin4, TypedData_ListMixin5, TypedData_ListMixin_FixedLengthListMixin5, TypedData_ListMixin6, TypedData_ListMixin_FixedLengthListMixin6, TypedData_ListMixin7, TypedData_ListMixin_FixedLengthListMixin7, Int64List, Uint64List, SubRect, Bordered, Button, RenderRequest, CanvasRenderer, CanvasRenderer__initSkinTexture_closure, CanvasRenderer__initTexture_closure, CanvasRenderer__initTexture_closure0, CanvasRenderer_preloadTexture_closure, CanvasRenderer_preloadTexture_closure0, CanvasRenderer_preloadTexture_closure1, CanvasRenderer_drawTexturedRectFromName_closure, CanvasRenderer_drawTexturedRectFromName_closure0, CanvasRenderer_initialize_closure, CanvasRenderer_initialize_closure0, CanvasRenderer_finish_closure, CanvasRenderer_finish_closure0, CheckBox, CloseButton, GwenComboBoxEventHandler, ComboBox, GwenCrossSplitterEventHandler, CrossSplitter, CssCursor, DockBaseEventHandler, DockBase, DownArrow, Dragger, GroupBox, GwenControlBase, GwenControlCanvas, GwenEventArgs, ClickedEventArgs, GwenEventHandler, GwenControlEventHandler, GwenEventHandlerList, GwenFont, GwenKey, GwenMargin, CanvasFont, CanvasTexture, GwenRenderer, BoundClosure$20, GwenRenderer_onKeyDownHandler_closure, Color, GwenRendererBase, ScrollBar, SkinWindow, SkinButton, SkinInactive, SkinActive, SkinTab, SkinLabel, SkinTree, SkinProperties, SkinLine, SkinLineAlt, SkinCategory, GwenSkinColors, GwenSkinBase, GwenTable, TableRow, GwenText, GwenTexture, _Active, _Disabled, _ScrollerButton, _Panel, _Window, _CheckBox, _RadioButton, _TextBox, _Tree, _ProgressBar, _Menu, _Scroller, _H, _V, _Slider, _Button, _ComboBox, _ListBox, _Up, _Down, _UpDown, _InputButton, _Input, _Bottom, _Top, _Left, _Right, _Tab, _CategoryList, SkinTextures, GwenTexturedSkinBase, HorizontalScrollBar, HorizontalSplitter, ImagePanel, ItemSelectedEventArgs, KeyData, MouseEventHandlerAddedHandler, Label, GwenPressEventHandler, GwenCheckBoxChangedEventHandler, LabeledCheckBox, GwenRBPressEventHandler, LabeledRadioButton, GwenListBoxEventHandler, ListBox, ListBoxRow, GwenMenuEventHandler, Menu, MenuItem, MenuStrip, Modal, NumericUpDown, GwenPadding, Pos, RadioButton, GwenRadioButtonGroupClickEventHandler, RadioButtonGroup, ResizableEventHandler, ResizableControl, Resizer, RightArrow, ScrollBarBar, ScrollBarButton, GwenScrollControlEventHandler, ScrollControl, Single, Splitter, SplitterBar, TextBox, TextBoxNumeric, TreeControl, GwenTreeNodeEventHandler, TreeNode, TreeNodeLabel, TreeToggleButton, UpDownButtonDown, UpDownButtonUp, GwenScrollBarEventHandler, VerticalScrollBar, VerticalSplitter, WebglCanvasRenderer, WebglCanvasRenderer__initTexture_closure, WebglCanvasRenderer__initTexture_closure0, WindowControl, main_closure, main_closure0, _TypedImageData, TestDockBase, Matrix4, Vector3, Vector4, Closure$2, Closure$1, Closure$0, Closure$7, Closure$20];
+  return [HtmlElement, AnchorElement, AnimationEvent, AreaElement, AudioElement, AutocompleteErrorEvent, BRElement, BaseElement, BeforeLoadEvent, BeforeUnloadEvent, Blob, BodyElement, ButtonElement, CanvasElement, CanvasGradient, CanvasPattern, CanvasRenderingContext, CanvasRenderingContext2D, CloseEvent, CompositionEvent, ContentElement, CssFontFaceLoadEvent, CssStyleDeclaration, CustomEvent, DListElement, DataListElement, DetailsElement, DeviceMotionEvent, DeviceOrientationEvent, DialogElement, DivElement, Document, DomError, DomException, Element, EmbedElement, ErrorEvent, Event, EventTarget, FieldSetElement, File, FileError, FocusEvent, FormElement, HRElement, HashChangeEvent, HeadElement, HeadingElement, HtmlDocument, HtmlHtmlElement, IFrameElement, ImageData, ImageElement, InputElement, KeyboardEvent, KeygenElement, LIElement, LabelElement, LegendElement, LinkElement, MapElement, MediaElement, MediaError, MediaKeyError, MediaKeyEvent, MediaKeyMessageEvent, MediaKeyNeededEvent, MediaStream, MediaStreamEvent, MediaStreamTrackEvent, MenuElement, MessageEvent, MetaElement, MeterElement, MidiConnectionEvent, MidiMessageEvent, ModElement, MouseEvent, Navigator, NavigatorUserMediaError, Node, OListElement, ObjectElement, OptGroupElement, OptionElement, OutputElement, OverflowEvent, PageTransitionEvent, ParagraphElement, ParamElement, PopStateEvent, PositionError, PreElement, ProgressElement, ProgressEvent, QuoteElement, ResourceProgressEvent, RtcDataChannelEvent, RtcDtmfToneChangeEvent, RtcIceCandidateEvent, ScriptElement, SecurityPolicyViolationEvent, SelectElement, ShadowElement, SourceElement, SpanElement, SpeechInputEvent, SpeechRecognitionError, SpeechRecognitionEvent, SpeechSynthesisEvent, StorageEvent, StyleElement, TableCaptionElement, TableCellElement, TableColElement, TableElement, TableRowElement, TableSectionElement, TemplateElement, TextAreaElement, TextEvent, TextMetrics, TitleElement, TouchEvent, TrackElement, TrackEvent, TransitionEvent, UIEvent, UListElement, UnknownElement, VideoElement, WheelEvent, Window, _ClientRect, _HTMLAppletElement, _HTMLBaseFontElement, _HTMLDirectoryElement, _HTMLFontElement, _HTMLFrameElement, _HTMLFrameSetElement, _HTMLMarqueeElement, _MutationEvent, _XMLHttpRequestProgressEvent, VersionChangeEvent, AElement, AltGlyphElement, AnimateElement, AnimateMotionElement, AnimateTransformElement, AnimatedLength, AnimatedLengthList, AnimatedNumber, AnimatedNumberList, AnimationElement, CircleElement, ClipPathElement, DefsElement, DescElement, EllipseElement, FEBlendElement, FEColorMatrixElement, FEComponentTransferElement, FECompositeElement, FEConvolveMatrixElement, FEDiffuseLightingElement, FEDisplacementMapElement, FEDistantLightElement, FEFloodElement, FEFuncAElement, FEFuncBElement, FEFuncGElement, FEFuncRElement, FEGaussianBlurElement, FEImageElement, FEMergeElement, FEMergeNodeElement, FEMorphologyElement, FEOffsetElement, FEPointLightElement, FESpecularLightingElement, FESpotLightElement, FETileElement, FETurbulenceElement, FilterElement, ForeignObjectElement, GElement, GraphicsElement, ImageElement0, LineElement, LinearGradientElement, MarkerElement, MaskElement, MetadataElement, PathElement, PatternElement, PolygonElement, PolylineElement, RadialGradientElement, Rect, RectElement, ScriptElement0, SetElement, StopElement, StyleElement0, SvgElement, SvgSvgElement, SwitchElement, SymbolElement, TSpanElement, TextContentElement, TextElement, TextPathElement, TextPositioningElement, TitleElement0, UseElement, ViewElement, ZoomEvent, _GradientElement, _SVGAltGlyphDefElement, _SVGAltGlyphItemElement, _SVGAnimateColorElement, _SVGComponentTransferFunctionElement, _SVGCursorElement, _SVGFEDropShadowElement, _SVGFontElement, _SVGFontFaceElement, _SVGFontFaceFormatElement, _SVGFontFaceNameElement, _SVGFontFaceSrcElement, _SVGFontFaceUriElement, _SVGGlyphElement, _SVGGlyphRefElement, _SVGHKernElement, _SVGMPathElement, _SVGMissingGlyphElement, _SVGVKernElement, AudioProcessingEvent, OfflineAudioCompletionEvent, Buffer, ContextEvent, Program, RenderingContext, Shader, Texture, UniformLocation, SqlError, ByteBuffer, TypedData, ByteData, Float32List, Float64List, Int16List, Int32List, Int8List, Uint16List, Uint32List, Uint8ClampedList, Uint8List, JS_CONST, Interceptor, JSBool, JSNull, JavaScriptObject, PlainJavaScriptObject, UnknownJavaScriptObject, JSArray, JSMutableArray, JSFixedArray, JSExtendableArray, JSNumber, JSInt, JSDouble, JSString, startRootIsolate_closure, startRootIsolate_closure0, _Manager, _IsolateContext, _EventLoop, _EventLoop__runHelper_next, _IsolateEvent, _MainManagerStub, IsolateNatives__processWorkerMessage_closure, _BaseSendPort, _NativeJsSendPort, _NativeJsSendPort_send_closure, _NativeJsSendPort_send__closure, _WorkerSendPort, _WorkerSendPort_send_closure, ReceivePortImpl, BoundClosure$i0, _waitForPendingPorts_closure, _PendingSendPortFinder, _JsSerializer, _JsCopier, _JsDeserializer, _JsVisitedMap, _MessageTraverserVisitedMap, _MessageTraverser, BoundClosure$1, _Copier, _Copier_visitMap_closure, _Serializer, _Deserializer, TimerImpl, TimerImpl_internalCallback, TimerImpl_internalCallback0, TypeErrorDecoder, NullError, JsNoSuchMethodError, UnknownJsTypeError, unwrapException_saveStackTrace, _StackTrace, invokeClosure_closure, invokeClosure_closure0, invokeClosure_closure1, invokeClosure_closure2, invokeClosure_closure3, Closure, BoundClosure, CastErrorImplementation, TypeImpl, initHooks_closure, initHooks_closure0, initHooks_closure1, ListIterator, MappedIterable, EfficientLengthMappedIterable, MappedIterator, FixedLengthListMixin, _AsyncError, Future, Future_Future_closure, Future_wait_handleError, Future_wait_closure, _Completer, _AsyncCompleter, _Future, BoundClosure$2, _Future__addListener_closure, _Future__chainFutures_closure, _Future__chainFutures_closure0, _Future__asyncComplete_closure, _Future__asyncCompleteError_closure, _Future__propagateToListeners_closure, _Future__propagateToListeners_closure0, _Future__propagateToListeners__closure, _Future__propagateToListeners__closure0, Stream, Stream_forEach_closure, Stream_forEach__closure, Stream_forEach__closure0, Stream_forEach_closure0, Stream_length_closure, Stream_length_closure0, StreamSubscription, BoundClosure$i1, _StreamController, _StreamController__subscribe_closure, _StreamController__recordCancel_complete, _SyncStreamControllerDispatch, _AsyncStreamControllerDispatch, _AsyncStreamController, _StreamController__AsyncStreamControllerDispatch, _SyncStreamController, _StreamController__SyncStreamControllerDispatch, _ControllerStream, _ControllerSubscription, BoundClosure$0, _EventSink, _BufferingStreamSubscription, _BufferingStreamSubscription__sendDone_sendDone, _StreamImpl, _DelayedEvent, _DelayedData, _DelayedDone, _PendingEvents, _PendingEvents_schedule_closure, _StreamImplEvents, _cancelAndError_closure, _cancelAndErrorClosure_closure, _BaseZone, _BaseZone_bindCallback_closure, _BaseZone_bindCallback_closure0, _BaseZone_bindUnaryCallback_closure, _BaseZone_bindUnaryCallback_closure0, _rootHandleUncaughtError_closure, _rootHandleUncaughtError__closure, _RootZone, _HashMap, _HashMap_values_closure, HashMapKeyIterable, HashMapKeyIterator, _LinkedHashMap, _LinkedHashMap_values_closure, LinkedHashMapCell, LinkedHashMapKeyIterable, LinkedHashMapKeyIterator, _HashSet, _IdentityHashSet, HashSetIterator, _HashSetBase, IterableBase, ListMixin, Maps_mapToString_closure, ListQueue, _ListQueueIterator, NoSuchMethodError_toString_closure, DateTime, DateTime_toString_fourDigits, DateTime_toString_threeDigits, DateTime_toString_twoDigits, Duration, Duration_toString_sixDigits, Duration_toString_twoDigits, Error, NullThrownError, ArgumentError, RangeError, UnsupportedError, UnimplementedError, StateError, ConcurrentModificationError, StackOverflowError, CyclicInitializationError, _ExceptionImplementation, FormatException, IntegerDivisionByZeroException, Expando, Function, Iterator, Null, Object, StackTrace, StringBuffer, Symbol, Interceptor_CssStyleDeclarationBase, CssStyleDeclarationBase, EventStreamProvider, _EventStream, _ElementEventStreamImpl, _EventStreamSubscription, ReceivePort, Point, _RectangleBase, Rectangle, TypedData_ListMixin, TypedData_ListMixin_FixedLengthListMixin, TypedData_ListMixin0, TypedData_ListMixin_FixedLengthListMixin0, TypedData_ListMixin1, TypedData_ListMixin_FixedLengthListMixin1, TypedData_ListMixin2, TypedData_ListMixin_FixedLengthListMixin2, TypedData_ListMixin3, TypedData_ListMixin_FixedLengthListMixin3, TypedData_ListMixin4, TypedData_ListMixin_FixedLengthListMixin4, TypedData_ListMixin5, TypedData_ListMixin_FixedLengthListMixin5, TypedData_ListMixin6, TypedData_ListMixin_FixedLengthListMixin6, TypedData_ListMixin7, TypedData_ListMixin_FixedLengthListMixin7, Int64List, Uint64List, SubRect, Bordered, Button, RenderRequest, CanvasRenderer, CanvasRenderer__initSkinTexture_closure, CanvasRenderer__initTexture_closure, CanvasRenderer__initTexture_closure0, CanvasRenderer_preloadTexture_closure, CanvasRenderer_preloadTexture_closure0, CanvasRenderer_preloadTexture_closure1, CanvasRenderer_drawTexturedRectFromName_closure, CanvasRenderer_drawTexturedRectFromName_closure0, CanvasRenderer_initialize_closure, CanvasRenderer_initialize_closure0, CanvasRenderer_finish_closure, CanvasRenderer_finish_closure0, CheckBox, CloseButton, GwenComboBoxEventHandler, ComboBox, GwenCrossSplitterEventHandler, CrossSplitter, CssCursor, DownArrow, Dragger, GroupBox, GwenControlBase, GwenMouseEventArgs, GwenControlCanvas, GwenEventArgs, ClickedEventArgs, GwenEventHandler, GwenControlEventHandler, GwenEventHandlerList, GwenFont, GwenKey, GwenMargin, GwenPackage, CanvasFont, CanvasTexture, GwenRenderer, BoundClosure$20, GwenRenderer_onKeyDownHandler_closure, Color, GwenRendererBase, ScrollBar, SkinWindow, SkinButton, SkinInactive, SkinActive, SkinTab, SkinLabel, SkinTree, SkinProperties, SkinLine, SkinLineAlt, SkinCategory, GwenSkinColors, GwenSkinBase, GwenTable, TableRow, GwenText, GwenTexture, _Active, _Disabled, _ScrollerButton, _Panel, _Window, _CheckBox, _RadioButton, _TextBox, _Tree, _ProgressBar, _Menu, _Scroller, _H, _V, _Slider, _Button, _ComboBox, _ListBox, _Up, _Down, _UpDown, _InputButton, _Input, _Bottom, _Top, _Left, _Right, _Tab, _CategoryList, SkinTextures, GwenTexturedSkinBase, HorizontalScrollBar, HorizontalSplitter, ImagePanel, ItemSelectedEventArgs, KeyData, MouseEventHandlerAddedHandler, Label, GwenPressEventHandler, GwenCheckBoxChangedEventHandler, LabeledCheckBox, GwenRBPressEventHandler, LabeledRadioButton, GwenListBoxEventHandler, ListBox, ListBoxRow, GwenMenuEventHandler, Menu, MenuItem, MenuStrip, MessageBox, Modal, NumericUpDown, GwenPadding, Pos, RadioButton, GwenRadioButtonGroupClickEventHandler, RadioButtonGroup, ResizableEventHandler, ResizableControl, Resizer, RightArrow, ScrollBarBar, ScrollBarButton, GwenScrollControlEventHandler, ScrollControl, Single, Splitter, SplitterBar, StatusBar, TabButton, TabControlScrollPressedEventHandler, TabControlOnTabHandler, TabControl, TabControlInner, TabStrip, TextBox, TextBoxNumeric, TreeControl, GwenTreeNodeEventHandler, TreeNode, TreeNodeLabel, TreeToggleButton, UpDownButtonDown, UpDownButtonUp, GwenScrollBarEventHandler, VerticalScrollBar, VerticalSplitter, WebglCanvasRenderer, WebglCanvasRenderer__initTexture_closure, WebglCanvasRenderer__initTexture_closure0, WindowControl, main_closure, main_closure0, _TypedImageData, TestDockBase, Matrix4, Vector3, Vector4, Closure$2, Closure$1, Closure$0, Closure$7, Closure$20];
 }
