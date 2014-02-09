@@ -1,9 +1,28 @@
 import 'dart:html';
 import 'src/gwendart.dart';
 
+
+
+
+
+
+
 class TestDockBase extends GwenControlBase
 {
   static const String SkinImageFilename = "DefaultSkin.png";
+  
+  static List<String> getListOfTextureFilenames()
+  {
+    List<String> listRet = new List<String>();
+    listRet.add("test16.png");
+    listRet.add("redBrightMetallicC128.png");
+    return listRet;
+  }
+  static GwenControlBase createTestDocBase(CanvasRenderer renderer, GwenControlCanvas gcanvas, int width, int height)
+  {
+    return new TestDockBase(renderer, gcanvas, renderer.Width, renderer.Height);
+  }
+  
    GwenControlBase _lastControl;
    double Fps;
    String Note;

@@ -1,4 +1,6 @@
 part of gwendart;
+typedef  GwenControlBase UserPanelCreateFunction(CanvasRenderer renderer, GwenControlCanvas gcanvas, int width, int height);
+
 
 class RenderRequest
 {
@@ -147,7 +149,6 @@ class CanvasRenderer
   {
     _completerSkinTexture=new Completer();
     _imageElementSkinTexture = new Element.tag('img');
-    _imageElementSkinTexture.style.visibility = "hidden";
     _imageElementSkinTexture.onLoad.listen(onSkinTextureLoaded).onError( (e)
         {
             print("_initSkinTexture error!");
@@ -157,20 +158,7 @@ class CanvasRenderer
     return _completerSkinTexture.future;
   }
   
-  Future _initTexture() {
-    ImageElement image = new Element.tag('img');
-   // Texture2D t;
-    image.onLoad.listen((e) {
-      _textureLoadCompleter.complete();
-    }).onError( (e) {
-      print("_initTexture error!");
-      _textureLoadCompleter.completeError(e);
-      } );
-    //image.src = "nehe.gif";
-    //image.src = "512_rgbw_corners.png";
-    image.src = "code512.png";
-    return _textureLoadCompleter.future;
-  }
+
   
   
   void drawMissingTexture(Rectangle<int> rect, String name)
@@ -478,11 +466,11 @@ class CanvasRenderer
   Future initialize([List<String> listTextureNamesToPreload=null])
   {
     Completer multipleTextureCompleter = new Completer();
-    Future futTexture1= _initTexture();
+//    Future futTexture1= _initTexture();
     Future futSkinTexture = _initSkinTexture();
     
     List<Future> listToWaitFor=new List<Future>();
-    listToWaitFor.add(futTexture1);
+//    listToWaitFor.add(futTexture1);
     listToWaitFor.add(futSkinTexture);
     if(null != listTextureNamesToPreload)
     {
@@ -630,3 +618,60 @@ class CanvasRenderer
   }
 
 }
+
+void startGwen(String strTagCanvas2D, 
+               String strSkinTextureName, 
+               int iSkinWidth, 
+               int iSkinHeight,
+               List<String> listTexturesToPreload,
+               UserPanelCreateFunction userPanelCreate)
+{
+  CanvasElement drawCanvas = querySelector( strTagCanvas2D );
+  CanvasElement skinCanvas = new CanvasElement(width:iSkinWidth, height:iSkinHeight);
+  skinCanvas.style.display = "none";
+  CanvasRenderer renderer = new CanvasRenderer(
+      drawCanvas,
+      drawCanvas,
+      skinCanvas,
+      strSkinTextureName
+      );
+  /* Step 4: Ask renderer to prevent browser key interpretation */
+  renderer.preventBrowserKeyInterpretation();
+  
+  /* Step 5: Ask the renderer to load all the textures to be used into image elements */
+  /* and when finished, continue. */
+  renderer.initialize(listTexturesToPreload).then((_) {
+    
+          /* Step 6: After all the textures are loaded, creating the GWEN objects*/
+          GwenRenderer grenderer = new GwenRenderer(renderer); /* The GWEN renderer which calls our canvasrenderer */
+          
+          /* Step 7: Create the skin object which knows how to draw all the controls. */
+          GwenTexturedSkinBase skin = new GwenTexturedSkinBase(grenderer, "DefaultSkin.png");
+          
+          /* Step 8: Create the main GwenControlCanvas upon which all the controls will be attached */
+          GwenControlCanvas gcanvas = new GwenControlCanvas(skin);
+
+          /* Step 9: Set various parameters of the canvas. */
+          gcanvas.MouseInputEnabled = true;
+          gcanvas.KeyboardInputEnabled = true;
+          gcanvas.SetSize(renderer.Width, renderer.Height);
+          gcanvas.ShouldDrawBackground = true;
+          gcanvas.BackgroundColor = new Color.argb(255, 200, 165, 120);
+          
+          /* Step 10: Create the user's panel */
+          userPanelCreate(renderer, gcanvas, renderer.Width, renderer.Height);
+          //TestDockBase testDockBase = new TestDockBase(renderer, gcanvas, renderer.Width, renderer.Height);
+          
+          /* Step 11: setup the canvas's mouse and keyboard events to report to Gwen */
+          grenderer.connectEventsToGwenCanvas(gcanvas); 
+          
+          /* Step 12: Tell the canvas to draw itself. */
+          grenderer.notifyRedrawRequested();
+          querySelector("#drawHere" ).focus();
+        }
+        , onError: (err, stacktrace) { print("Error in first render: $err, stacktrac: $stacktrace");});
+    
+  
+}
+
+

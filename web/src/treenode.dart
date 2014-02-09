@@ -359,7 +359,7 @@ GwenEventHandlerList Collapsed= new GwenEventHandlerList();
     if (node != null) {
       if(child is TreeNode)
       {
-      node = child as TreeNode;
+      node = child;
       node.MyTreeControl = _treeControl;
 
       if (_treeControl != null) {
