@@ -2,6 +2,7 @@ part of gwendart;
 
 abstract class GwenFont
 {
+    static const int DEFAULT_FONTSZ=12;
     String get FaceName;
     set FaceName(String);
     int get Size;
@@ -14,12 +15,12 @@ abstract class GwenFont
     set RealSize(double);
     final GwenRendererBase _renderer;
 
-    factory GwenFont(GwenRendererBase renderer, [String faceName="Arial", int size=10])
+    factory GwenFont(GwenRendererBase renderer, [String faceName="Arial", int size=DEFAULT_FONTSZ])
     {
       return new CanvasFont(renderer, faceName, size);
     }
     
-    GwenFont._internal(GwenRendererBase renderer, [String faceName="Arial", int size=10]) : _renderer = renderer
+    GwenFont._internal(GwenRendererBase renderer, [String faceName="Arial", int size=DEFAULT_FONTSZ]) : _renderer = renderer
         {
             FaceName = faceName;
             Size = size;

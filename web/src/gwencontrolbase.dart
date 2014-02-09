@@ -1575,10 +1575,7 @@ class GwenControlBase
                     width -= width2;
                 }
                 
-       if(this is VerticalScrollBar)
-       {
-         if(null == left) print("lal al al a");
-       }
+
 
                 if (0 != (dock.value & Pos.Right.value))
                 {
@@ -1613,6 +1610,10 @@ class GwenControlBase
             //
             for(GwenControlBase child in m_Children)
             {
+              if((this is LabeledRadioButton) && (child is Label))
+              {
+                if(null == left) print("lal al al a");
+              }
                 Pos dock = child.Dock;
 
                 if (!(0 != (dock.value & Pos.Fill.value)))

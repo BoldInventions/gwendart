@@ -12,6 +12,7 @@ void main() {
   int iRendererSelect=USE_CANVAS2D_RENDERER;
   List<String> listTexturesToPreload = new List<String>();
   listTexturesToPreload.add("test16.png");
+  listTexturesToPreload.add("redBrightMetallicC128.png");
   CanvasRenderer renderer=null;
   switch(iRendererSelect)
   {

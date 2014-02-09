@@ -316,7 +316,7 @@ class TextBox extends Label
             }
 
             if (_cursorPos == 0) return true;
-
+        print( "textbox.OnKeyBackspace curpos: $_cursorPos");
             DeleteText(_cursorPos - 1, 1);
 
             return true;
@@ -456,8 +456,9 @@ class TextBox extends Label
           if(length <= 0) return orig;
           if(startPos >= orig.length)return orig;
           if(startPos <= 0) return orig.substring(length);
-          if(startPos + length >= orig.length) return orig.substring(startPos); 
-          return orig.substring(0, startPos) + orig.substring(startPos+length);
+          if(startPos + length >= orig.length) return orig.substring(0, startPos); 
+          int olen = orig.length;
+          return orig.substring(0, startPos) + orig.substring(startPos+length, olen-1);
         }
         /// <summary>
         /// Deletes text.
@@ -467,15 +468,21 @@ class TextBox extends Label
         void DeleteText(int startPos, int length)
         {
             String str = super.Text;
+      print ( "textbox.DeleteText('$str', $startPos, $length)");
             str = removeFromString(str, startPos, length);
+      print ( "Result: $str");
             SetText(str);
 
+            print( "_cursorPos: $_cursorPos, startPos: $startPos");
             if (_cursorPos > startPos)
             {
+                _cursorEnd = _cursorPos - length;
                 CursorPos = _cursorPos - length;
+      print ( " Setting _cursorPos to $CursorPos");
             }
-
+      print( " Settinng end to $_cursorPos");
             CursorEnd = _cursorPos;
+            RefreshCursorBounds();
         }
 
         /// <summary>

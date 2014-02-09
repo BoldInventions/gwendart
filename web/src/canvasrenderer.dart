@@ -407,7 +407,7 @@ class CanvasRenderer
       }
     }
     double textWidth =_txContext.measureText(str).width;
-    double textHeight = _txContext.measureText("M").width * 1.2;
+    double textHeight = 3 + _txContext.measureText("M").width * 1.3;
     return new Point<int>( textWidth.toInt(), textHeight.toInt());
   }
   
@@ -434,11 +434,19 @@ class CanvasRenderer
     //_txContext.fillStyle = "#000000";
     //_txContext.fillRect(0, 0, textWidth, textHeight );
     
+    /* diagnostics to see the top of the text rectangle
+    _txContext.setStrokeColorRgb(0, 0, 128, 255);
+    _txContext.beginPath();
+    _txContext.moveTo(x, y);
+    _txContext.lineTo(x+tWid, y);
+    _txContext.stroke();
+    */
+    
     _txContext.textAlign = "left";
     _txContext.textBaseline = "top";
     _txContext.fillStyle = CurrentColor.StyleString;
     
-
+    
     
     _txContext.fillText(str, x, y, _txwidth);
     _bTextureModified=true;

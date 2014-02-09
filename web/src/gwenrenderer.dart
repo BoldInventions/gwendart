@@ -338,6 +338,8 @@ class GwenRenderer extends GwenRendererBase
   {
     Rectangle targetRect = translateRect(r);
     _cvsr.drawTexturedRectFromName(t.Name, targetRect, u1, v1, u2, v2);
+    //_cvsr.CurrentColor = new Color.rgb(255, 0, 255);
+    //_cvsr.drawLinedRectOnCanvas(targetRect);
   }
   
   void drawMissingImage(Rectangle<int> r, [String name="(unknown)"])
@@ -361,7 +363,13 @@ class GwenRenderer extends GwenRendererBase
   void renderText(GwenFont font, Point<int> position, String text)
   {
     _cvsr.setFont(font.CssString);
-    _cvsr.drawTextOnCanvas( text, translateX(position.x), translateY(position.y) );
+    Point txSize = _cvsr.measureText(text);
+    Rectangle rectText = new Rectangle(_renderOffset.x, _renderOffset.y, txSize.x, txSize.y);
+
+    if(_clipRegion.intersects(rectText))
+    {
+       _cvsr.drawTextOnCanvas( text, translateX(position.x), translateY(position.y) );
+    }
   }
   
   void drawLinedRect(Rectangle<int> r)
@@ -560,12 +568,12 @@ class GwenRenderer extends GwenRendererBase
      /* Upon completing of some rendering, queue up another if need be. */
      if(_bRenderUpdateNeeded)
      {
-       print("Frame $_frameNumber took ${timeCompleted.inMilliseconds} ($lastKnownMouseX, $lastKnownMouseY)");
+ //      print("Frame $_frameNumber took ${timeCompleted.inMilliseconds} ($lastKnownMouseX, $lastKnownMouseY)");
        //new Future.delayed(new Duration(milliseconds: 50), notifyRedrawRequested);
        new Future(notifyRedrawRequested);
      } else
      {
-       print("Frame $_frameNumber finished at $timeCompleted");
+ //      print("Frame $_frameNumber finished at $timeCompleted");
      }
      _frameNumber++;
   }

@@ -214,7 +214,7 @@ class GwenSkinBase
    void ReleaseFont(GwenFont font){}
    
    
-   void SetDefaultFont(String facename, [int size=10])
+   void SetDefaultFont(String facename, [int size=GwenFont.DEFAULT_FONTSZ])
    {
      DefaultFont = new GwenFont(null, facename, size);
    }

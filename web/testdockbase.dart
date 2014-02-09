@@ -73,6 +73,12 @@ class TestDockBase extends GwenControlBase
       window.SetSize(220, 100);
       window.SetPosition(1, 5);
       
+      
+      ImagePanel imgPanel = new ImagePanel(page0);
+      imgPanel.ImageName = "redBrightMetallicC128.png";
+      imgPanel.SetPosition(10, 240);
+      
+      
       TextBox textBox = new TextBox(page1);
       textBox.Text = "Hello";
       textBox.AutoSizeToContents = false;
@@ -87,7 +93,7 @@ class TestDockBase extends GwenControlBase
      // gb.SetBounds(1, 350, 220, 150);
       RadioButtonGroup rbGroup = new RadioButtonGroup(page1);
       rbGroup.SetText("Options!");
-      rbGroup.AddOption("option 1", "opName1");
+      rbGroup.AddOption("radio1", "opName1");
       rbGroup.AddOption("Optioh 2", "opName2");
       rbGroup.AddOption("option 3", "opName3");
       rbGroup.SetPosition(260, 320);
@@ -206,6 +212,7 @@ class TestDockBase extends GwenControlBase
         
         NumericUpDown nup = new NumericUpDown(page1);
         nup.SetPosition(350, 25);
+
         
         StatusBar statusBar = new StatusBar(page0);
         _lblMouseCoords = new Label(statusBar);

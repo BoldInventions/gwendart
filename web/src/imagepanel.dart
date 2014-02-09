@@ -6,6 +6,10 @@ class ImagePanel extends GwenControlBase
    GwenTexture _texture;
    List<double> _uv;
    Color _drawColor;
+   bool _autoSizeToContents;
+   
+   bool get AutoSizeToContents => _autoSizeToContents;
+   set AutoSizeToContents (bool value) { _autoSizeToContents=value; Invalidate(); }
    
    void SetUV(double u0, double v0, double u1, double v1)
    {
@@ -20,6 +24,10 @@ class ImagePanel extends GwenControlBase
    set ImageName(String value) 
    {
       _texture.load(value);
+      if(_autoSizeToContents)
+      {
+         SizeToContents();
+      }
    }
    
    void Render(GwenSkinBase skin)
@@ -48,6 +56,7 @@ class ImagePanel extends GwenControlBase
    
    ImagePanel(GwenControlBase parent) : super(parent)
    {
+     _autoSizeToContents=true;
      _uv = new List<double>(4);
      SetUV(0.0, 0.0, 1.0, 1.0);
      _texture = new GwenTexture(Skin.Renderer);
